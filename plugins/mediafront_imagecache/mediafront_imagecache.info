@@ -1,4 +1,3 @@
-; $Id$
 name = MediaFront ImageCache
 description = Provides support for the ImageCache module
 package = "MediaFront : Plugins"

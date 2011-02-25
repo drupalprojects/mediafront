@@ -1,4 +1,3 @@
-; $Id$
 name = MediaFront CDN2
 description = Provides support for the CDN2 Video module
 package = "MediaFront : Plugins"
