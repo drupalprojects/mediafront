@@ -570,7 +570,7 @@ function mediafront_views_pre_render($view) {
     $fields = array_keys($view->field);
     $id = in_array('title', $fields) ? 'title' : (in_array('nid', $fields) ? 'nid' : array_shift($fields));
     $class = '.views-field-' . drupal_clean_css_identifier($id);
-    $view_id = '.view-' . $view->name . '.' . 'view-display-id-' . $view->current_display;
+    $view_id = '.view-' . drupal_clean_css_identifier($view->name);
     $js .= 'jQuery.media.fieldSelector = "' . $view_id . ' ' . $class . '";';
     $js .= 'jQuery.media.playerId = "mediafront_' . $preset . '";';
 
