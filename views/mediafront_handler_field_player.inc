@@ -113,12 +113,12 @@ class mediafront_handler_field_player extends views_handler_field {
 
   // Override the query so that the field is not added.
   function query() {}
-  
+
   // Direct copy and paste from views_handler_field_field.inc get_items routine.
   function renderField( $values, $fieldObj ) {
     $entity = clone $values->_field_data[$fieldObj->field_alias]['entity'];
     $entity_type = $values->_field_data[$fieldObj->field_alias]['entity_type'];
-    $langcode = $fieldObj->field_language($entity_type);
+    $langcode = $fieldObj->field_language($entity_type, $entity);
 
     // The field we are trying to display doesn't exist on this entity.
     if (!isset($entity->{$fieldObj->definition['field_name']})) {
@@ -134,8 +134,8 @@ class mediafront_handler_field_player extends views_handler_field {
     $render_array = field_view_field($entity_type, $entity, $fieldObj->definition['field_name'], $display, $langcode);
     return render($render_array[0]);
   }
-  
-  function render($values) {    
+
+  function render($values) {
     $options = array(
       'intro' => $this->options['intro'],
       'commercial' => $this->options['commercial'],
@@ -144,17 +144,17 @@ class mediafront_handler_field_player extends views_handler_field {
       'postreel' => $this->options['postreel'],
       'preview' => $this->options['preview']
     );
-    
+
     $node = new stdClass();
     $node->mediafiles = array(
       'media' => array(),
       'images' => array('image' => '')
-    );    
-    
+    );
+
     foreach( array_filter($options) as $type => $value ) {
       if( isset($this->view->field[$value]) )  {
         $field = $this->view->field[$value];
-        
+
         // Different processing if it is an image.
         if( $field->field_info['type'] == 'image' ) {
           $entity = clone $values->_field_data[$field->field_alias]['entity'];
@@ -166,7 +166,7 @@ class mediafront_handler_field_player extends views_handler_field {
           // Render the media field.
           $value = $this->renderField($values, $field);
         }
-        
+
         if( $type == 'preview' ) {
           $node->mediafiles['images']['image'] = $value;
         }
