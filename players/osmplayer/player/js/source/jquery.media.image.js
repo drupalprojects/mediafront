@@ -52,7 +52,7 @@
 
       // Check to see if this image is completely loaded.
       this.loaded = function() {
-        return this.imageLoader.complete;
+        return this.imgLoader.complete;
       };
 
       // Resize the image.

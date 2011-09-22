@@ -1645,6 +1645,12 @@
         // Set the busy cursor visiblility.
         this.busyVisible = (this.busyFlags > 0);
         this.showElement( this.busy, this.busyVisible, tween );
+
+        // If the media has finished loading, then we don't need the
+        // loader for the image.
+        if (id==1 && !show) {
+          this.showBusy(3, false);
+        }
       };
 
       this.showPreview = function( show, tween ) {
