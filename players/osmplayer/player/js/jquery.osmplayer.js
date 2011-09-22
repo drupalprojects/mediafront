@@ -1929,7 +1929,7 @@
 /**
  *  Copyright (c) 2010 Alethia Inc,
  *  http://www.alethia-inc.com
- *  Developed by Travis Tidwell | travist at alethia-inc.com 
+ *  Developed by Travis Tidwell | travist at alethia-inc.com
  *
  *  License:  GPL version 3.
  *
@@ -1939,7 +1939,7 @@
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
 
@@ -1962,33 +1962,38 @@
     return new (function( container, link, fitToImage ) {
       this.display = container;
       var _this = this;
-         
+
       var ratio = 0;
-      var loaded = false;
-        
+      var imageLoaded = false;
+
       // Now create the image loader, and add the loaded handler.
       this.imgLoader = new Image();
       this.imgLoader.onload = function() {
-        loaded = true;
+        imageLoaded = true;
         ratio = (_this.imgLoader.width / _this.imgLoader.height);
         _this.resize();
         _this.display.trigger( "imageLoaded" );
       };
-         
+
       // Set the container to not show any overflow...
       container.css("overflow", "hidden");
-         
+
+      // Check to see if this image is completely loaded.
+      this.loaded = function() {
+        return this.imageLoader.complete;
+      };
+
       // Resize the image.
       this.resize = function( newWidth, newHeight ) {
         var rectWidth = fitToImage ? this.imgLoader.width : (newWidth ? newWidth : this.display.width());
         var rectHeight = fitToImage ? this.imgLoader.height : (newHeight ? newHeight : this.display.height());
-        if( rectWidth && rectHeight && loaded ) {               
+        if( rectWidth && rectHeight && imageLoaded ) {
           // Now resize the image in the container...
           var rect = jQuery.media.utils.getScaledRect( ratio, {
             width:rectWidth,
             height:rectHeight
           });
-          
+
           // Now set this image to the new size.
           if( this.image ) {
             this.image.attr( "src", this.imgLoader.src ).css({
@@ -2003,10 +2008,10 @@
           this.image.fadeIn();
         }
       };
-         
+
       // Clears the image.
       this.clear = function() {
-        loaded = false;
+        imageLoaded = false;
         if( this.image ) {
           this.image.attr("src", "");
           this.imgLoader.src = '';
@@ -2020,12 +2025,12 @@
           });
         }
       };
-         
+
       // Refreshes the image.
       this.refresh = function() {
         this.resize();
       };
-         
+
       // Load the image.
       this.loadImage = function( src ) {
         // Now add the image object.
@@ -2815,8 +2820,23 @@
       // Loads an image...
       this.loadImage = function( image ) {
         if( this.preview ) {
+          // Show a busy cursor for the image loading...
+          this.showBusy(3, true);
+
           // Load the image.
           this.preview.loadImage( image );
+
+          // Set and interval to check if the image is loaded.
+          var imageInterval = setInterval(function() {
+
+            // If the image is loaded, then clear the interval.
+            if (_this.preview.loaded()) {
+
+              // Clear the interval and stop the busy cursor.
+              clearInterval(imageInterval);
+              _this.showBusy(3, false);
+            }
+          }, 500);
 
           // Now set the preview image in the media player.
           if( this.media ) {
