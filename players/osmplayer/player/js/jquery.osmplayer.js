@@ -1929,7 +1929,7 @@
 /**
  *  Copyright (c) 2010 Alethia Inc,
  *  http://www.alethia-inc.com
- *  Developed by Travis Tidwell | travist at alethia-inc.com 
+ *  Developed by Travis Tidwell | travist at alethia-inc.com
  *
  *  License:  GPL version 3.
  *
@@ -1939,7 +1939,7 @@
  *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  *  copies of the Software, and to permit persons to whom the Software is
  *  furnished to do so, subject to the following conditions:
- *  
+ *
  *  The above copyright notice and this permission notice shall be included in
  *  all copies or substantial portions of the Software.
 
@@ -1962,33 +1962,38 @@
     return new (function( container, link, fitToImage ) {
       this.display = container;
       var _this = this;
-         
+
       var ratio = 0;
-      var loaded = false;
-        
+      var imageLoaded = false;
+
       // Now create the image loader, and add the loaded handler.
       this.imgLoader = new Image();
       this.imgLoader.onload = function() {
-        loaded = true;
+        imageLoaded = true;
         ratio = (_this.imgLoader.width / _this.imgLoader.height);
         _this.resize();
         _this.display.trigger( "imageLoaded" );
       };
-         
+
       // Set the container to not show any overflow...
       container.css("overflow", "hidden");
-         
+
+      // Check to see if this image is completely loaded.
+      this.loaded = function() {
+        return this.imgLoader.complete;
+      };
+
       // Resize the image.
       this.resize = function( newWidth, newHeight ) {
         var rectWidth = fitToImage ? this.imgLoader.width : (newWidth ? newWidth : this.display.width());
         var rectHeight = fitToImage ? this.imgLoader.height : (newHeight ? newHeight : this.display.height());
-        if( rectWidth && rectHeight && loaded ) {               
+        if( rectWidth && rectHeight && imageLoaded ) {
           // Now resize the image in the container...
           var rect = jQuery.media.utils.getScaledRect( ratio, {
             width:rectWidth,
             height:rectHeight
           });
-          
+
           // Now set this image to the new size.
           if( this.image ) {
             this.image.attr( "src", this.imgLoader.src ).css({
@@ -2003,10 +2008,10 @@
           this.image.fadeIn();
         }
       };
-         
+
       // Clears the image.
       this.clear = function() {
-        loaded = false;
+        imageLoaded = false;
         if( this.image ) {
           this.image.attr("src", "");
           this.imgLoader.src = '';
@@ -2020,12 +2025,12 @@
           });
         }
       };
-         
+
       // Refreshes the image.
       this.refresh = function() {
         this.resize();
       };
-         
+
       // Load the image.
       this.loadImage = function( src ) {
         // Now add the image object.
@@ -2604,8 +2609,6 @@
       };
 
       this.showBusy = function( id, show, tween ) {
-        show &= this.hasMedia;
-
         if( show ) {
           this.busyFlags |= (1 << id);
         }
@@ -2616,6 +2619,12 @@
         // Set the busy cursor visiblility.
         this.busyVisible = (this.busyFlags > 0);
         this.showElement( this.busy, this.busyVisible, tween );
+
+        // If the media has finished loading, then we don't need the
+        // loader for the image.
+        if (id==1 && !show) {
+          this.showBusy(3, false);
+        }
       };
 
       this.showPreview = function( show, tween ) {
@@ -2780,7 +2789,6 @@
         this.hasMedia = false;
         this.playing = false;
         jQuery.media.players[settings.id].showNativeControls(false);
-        this.showBusy(1, false);
         this.showPlay(true);
         this.showPreview(true);
         clearTimeout( this.timeoutId );
@@ -2815,8 +2823,23 @@
       // Loads an image...
       this.loadImage = function( image ) {
         if( this.preview ) {
+          // Show a busy cursor for the image loading...
+          this.showBusy(3, true);
+
           // Load the image.
           this.preview.loadImage( image );
+
+          // Set and interval to check if the image is loaded.
+          var imageInterval = setInterval(function() {
+
+            // If the image is loaded, then clear the interval.
+            if (_this.preview.loaded()) {
+
+              // Clear the interval and stop the busy cursor.
+              clearInterval(imageInterval);
+              _this.showBusy(3, false);
+            }
+          }, 500);
 
           // Now set the preview image in the media player.
           if( this.media ) {
@@ -6322,7 +6345,7 @@
 
       // Load the player.
       this.loadPlayer = function() {
-        if( this.ready && this.player ) {
+        if( this.ready && this.player && this.player.api_addEventListener ) {
           // Add our event listeners.
           this.player.api_addEventListener('onProgress', 'onVimeoProgress');
           this.player.api_addEventListener('onFinish', 'onVimeoFinish');
@@ -6369,7 +6392,9 @@
           type:"playing",
           busy:"hide"
         });
-        this.player.api_play();
+        if (this.player.api_play) {
+          this.player.api_play();
+        }
       };
 
       this.onProgress = function( time ) {
@@ -6383,12 +6408,16 @@
           type:"paused",
           busy:"hide"
         });
-        this.player.api_pause();
+        if (this.player.api_pause) {
+          this.player.api_pause();
+        }
       };
 
       this.stopMedia = function() {
         this.pauseMedia();
-        this.player.api_unload();
+        if (this.player.api_unload) {
+          this.player.api_unload();
+        }
       };
 
       this.destroy = function() {
@@ -6398,12 +6427,16 @@
       };
 
       this.seekMedia = function( pos ) {
-        this.player.api_seekTo( pos );
+        if (this.player.api_seekTo) {
+          this.player.api_seekTo( pos );
+        }
       };
 
       this.setVolume = function( vol ) {
         this.currentVolume = vol;
-        this.player.api_setVolume( (vol*100) );
+        if (this.player.api_setVolume) {
+          this.player.api_setVolume( (vol*100) );
+        }
       };
 
       // For some crazy reason... Vimeo has not implemented this... so just cache the value.
@@ -6412,11 +6445,11 @@
       };
 
       this.getDuration = function() {
-        return this.player.api_getDuration();
+        return this.player.api_getDuration ? this.player.api_getDuration() : 0;
       };
 
       this.getCurrentTime = function() {
-        return this.player.api_getCurrentTime();
+        return this.player.api_getCurrentTime ? this.player.api_getCurrentTime() : 0;
       };
 
       this.getBytesLoaded = function() {
@@ -6664,7 +6697,9 @@
           } );
 
           // Load our video.
-          this.player.loadVideoById( this.getId( this.videoFile.path ), 0, options.quality );
+          if (this.player.loadVideoById) {
+            this.player.loadVideoById( this.getId( this.videoFile.path ), 0, options.quality );
+          }
         }
       };
 
@@ -6691,12 +6726,16 @@
           };
 
           // Add our event listeners.
-          this.player.addEventListener('onStateChange', options.id + 'StateChange');
-          this.player.addEventListener('onError', options.id + 'PlayerError');
-          this.player.addEventListener('onPlaybackQualityChange', options.id + 'QualityChange');
+          if (this.player.addEventListener) {
+            this.player.addEventListener('onStateChange', options.id + 'StateChange');
+            this.player.addEventListener('onError', options.id + 'PlayerError');
+            this.player.addEventListener('onPlaybackQualityChange', options.id + 'QualityChange');
+          }
 
           // Get all of the quality levels.
-          this.qualities = this.player.getAvailableQualityLevels();
+          if (this.player.getAvailableQualityLevels) {
+            this.qualities = this.player.getAvailableQualityLevels();
+          }
 
           // Let them know the player is ready.
           onUpdate( {
@@ -6704,7 +6743,9 @@
           });
 
           // Load our video.
-          this.player.loadVideoById( this.getId( this.videoFile.path ), 0 );
+          if (this.player.loadVideoById) {
+            this.player.loadVideoById( this.getId( this.videoFile.path ), 0 );
+          }
         }
       };
 
@@ -6776,15 +6817,21 @@
           type:"buffering",
           busy:"show"
         });
-        this.player.playVideo();
+        if (this.player.playVideo) {
+          this.player.playVideo();
+        }
       };
 
       this.pauseMedia = function() {
-        this.player.pauseVideo();
+        if (this.player.pauseVideo) {
+          this.player.pauseVideo();
+        }
       };
 
       this.stopMedia = function() {
-        this.player.stopVideo();
+        if (this.player.stopVideo) {
+          this.player.stopVideo();
+        }
       };
 
       this.destroy = function() {
@@ -6798,47 +6845,53 @@
           type:"buffering",
           busy:"show"
         });
-        this.player.seekTo( pos, true );
+        if (this.player.seekTo) {
+          this.player.seekTo( pos, true );
+        }
       };
 
       this.setVolume = function( vol ) {
-        this.player.setVolume( vol * 100 );
+        if (this.player.setVolume) {
+          this.player.setVolume( vol * 100 );
+        }
       };
 
       this.setQuality = function( quality ) {
-        this.player.setPlaybackQuality( quality );
+        if (this.player.setPlaybackQuality) {
+          this.player.setPlaybackQuality( quality );
+        }
       };
 
       this.getVolume = function() {
-        return (this.player.getVolume() / 100);
+        return this.player.getVolume ? (this.player.getVolume() / 100) : 0;
       };
 
       this.getDuration = function() {
-        return this.player.getDuration();
+        return this.player.getDuration ? this.player.getDuration() : 0;
       };
 
       this.getCurrentTime = function() {
-        return this.player.getCurrentTime();
+        return this.player.getCurrentTime ? this.player.getCurrentTime() : 0;
       };
 
       this.getQuality = function() {
-        return this.player.getPlaybackQuality();
+        return this.player.getPlaybackQuality ? this.player.getPlaybackQuality() : 0;
       };
 
       this.getEmbedCode = function() {
-        return this.player.getVideoEmbedCode();
+        return this.player.getVideoEmbedCode ? this.player.getVideoEmbedCode() : 0;
       };
 
       this.getMediaLink = function() {
-        return this.player.getVideoUrl();
+        return this.player.getVideoUrl ? this.player.getVideoUrl() : 0;
       };
 
       this.getBytesLoaded = function() {
-        return this.player.getVideoBytesLoaded();
+        return this.player.getVideoBytesLoaded ? this.player.getVideoBytesLoaded() : 0;
       };
 
       this.getBytesTotal = function() {
-        return this.player.getVideoBytesTotal();
+        return this.player.getVideoBytesTotal ? this.player.getVideoBytesTotal() : 0;
       };
 
       this.hasControls = function() {
