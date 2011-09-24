@@ -600,10 +600,11 @@ function mediafront_block_content() {
   return $preset ? mediafront_get_player($preset) : '';
 }
 
+
 /**
- * Views pre-build
+ * Implements hook_views_query_alter().
  */
-function mediafront_views_pre_execute(&$view) {
+function mediafront_views_query_alter( &$view, &$query ) {
 
   // Check to make sure this is the block playlist.
   $exclude = variable_get('mediafront_block_playlist_exclude', array());
@@ -627,8 +628,19 @@ function mediafront_views_pre_execute(&$view) {
       $handler->options['alter']['text'] = '<div class="media-nid-hidden">[mediafront_nid]</div>';
       $handler->options['id'] = 'mediafront_nid';
       $handler->init($view, $handler->options);
+      $query->add_field('node', 'nid', 'mediafront_nid');
       $view->field['mediafront_nid'] = $handler;
       $view->display_handler->handlers['field']['mediafront_nid'] = $handler;
+    }
+  }
+
+  /**
+   * This is a HACK until I can convince the views maintainers to take my patch found at
+   * http://drupal.org/node/857946
+   */
+  if( $view->style_plugin->definition['handler'] == 'mediafront_plugin_style_player' ) {
+    if( !isset($query->fields) || !in_array('nid', array_keys($query->fields)) ) {
+      $query->add_field($query->base_table, 'nid');
     }
   }
 }
@@ -651,15 +663,12 @@ function mediafront_views_pre_render(&$view) {
 
     // Iterate through our results, and add the node objects to the page.
     foreach ($view->result as &$result) {
-      $result->mediafront_nid = $result->nid;
       $js .= 'jQuery.media.nodes["' . $result->nid . '"] = ' . mediafront_json_encode(mediafront_invoke_node(node_load($result->nid), NULL)) . ';';
     }
 
     // Get the class of the first field.
-    $fields = array_keys($view->field);
-    $class = '.views-field-mediafront-nid';
     $view_id = '.view-' . views_css_safe($view->name);
-    $js .= 'jQuery.media.fieldSelector = "' . $view_id . ' ' . $class . '";';
+    $js .= 'jQuery.media.fieldSelector = "' . $view_id . ' .views-field-mediafront-nid";';
     $js .= 'jQuery.media.playerId = "mediafront_' . $preset . '";';
 
     // Add this javascript to the main page.
@@ -805,21 +814,6 @@ function _mediafront_get_field( $node, $field_name, $index = -1 ) {
   }
   else {
     return null;
-  }
-}
-
-
-/**
- * Implements hook_views_query_alter().
- *
- * This is a HACK until I can convince the views maintainers to take my patch found at
- * http://drupal.org/node/857946
- */
-function mediafront_views_query_alter( &$view, &$query ) {
-  if( $view->style_plugin->definition['handler'] == 'mediafront_plugin_style_player' ) {
-    if( !isset($query->fields) || !in_array('nid', array_keys($query->fields)) ) {
-      $query->add_field($query->base_table, 'nid');
-    }
   }
 }
 
