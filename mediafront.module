@@ -601,9 +601,42 @@ function mediafront_block_content() {
 }
 
 /**
+ * Views pre-build
+ */
+function mediafront_views_pre_execute(&$view) {
+
+  // Check to make sure this is the block playlist.
+  $exclude = variable_get('mediafront_block_playlist_exclude', array());
+  if ((variable_get('mediafront_block_playlist', '') == $view->name) && !in_array($view->current_display, $exclude)) {
+
+    // We need to add the nid to the view if it does not exist...
+    if (!isset($view->field['mediafront_nid'])) {
+
+      // Add an inline style to hide the hidden media nids.
+      drupal_set_html_head('<style type="text/css">.media-nid-hidden { display:none; }</style>');
+
+      // Add a nid to the view.
+      $handler = views_get_handler('node', 'nid', 'field');
+      $handler->set_default_options();
+      $handler->field_alias = 'mediafront_nid';
+      $handler->table = 'node';
+      $handler->field = 'nid';
+      $handler->real_field = 'nid';
+      $handler->options['label'] = '';
+      $handler->options['alter']['alter_text'] = 1;
+      $handler->options['alter']['text'] = '<div class="media-nid-hidden">[mediafront_nid]</div>';
+      $handler->options['id'] = 'mediafront_nid';
+      $handler->init($view, $handler->options);
+      $view->field['mediafront_nid'] = $handler;
+      $view->display_handler->handlers['field']['mediafront_nid'] = $handler;
+    }
+  }
+}
+
+/**
  * Views pre-render
  */
-function mediafront_views_pre_render($view) {
+function mediafront_views_pre_render(&$view) {
 
   // Check to make sure this is the block playlist.
   $exclude = variable_get('mediafront_block_playlist_exclude', array());
@@ -614,18 +647,17 @@ function mediafront_views_pre_render($view) {
 
     // Initialize our javascript.
     $js = 'jQuery.media = jQuery.media ? jQuery.media : {};';
-    $js .= 'jQuery.media.nodes = jQuery.media.nodes ? jQuery.media.nodes : [];';
+    $js .= 'jQuery.media.nodes = jQuery.media.nodes ? jQuery.media.nodes : {};';
 
     // Iterate through our results, and add the node objects to the page.
-    foreach ($view->result as $result) {
-      $node = isset($result->_field_data) && isset($result->_field_data['nid']) && isset($result->_field_data['nid']['entity']) ? $result->_field_data['nid']['entity'] : node_load($result->nid);
-      $js .= 'jQuery.media.nodes.push(' . mediafront_json_encode(mediafront_invoke_node($node, NULL)) . ');';
+    foreach ($view->result as &$result) {
+      $result->mediafront_nid = $result->nid;
+      $js .= 'jQuery.media.nodes["' . $result->nid . '"] = ' . mediafront_json_encode(mediafront_invoke_node(node_load($result->nid), NULL)) . ';';
     }
 
     // Get the class of the first field.
     $fields = array_keys($view->field);
-    $id = in_array('title', $fields) ? 'title' : (in_array('nid', $fields) ? 'nid' : array_shift($fields));
-    $class = '.views-field-' . views_css_safe($id);
+    $class = '.views-field-mediafront-nid';
     $view_id = '.view-' . views_css_safe($view->name);
     $js .= 'jQuery.media.fieldSelector = "' . $view_id . ' ' . $class . '";';
     $js .= 'jQuery.media.playerId = "mediafront_' . $preset . '";';

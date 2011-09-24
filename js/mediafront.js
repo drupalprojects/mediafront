@@ -5,19 +5,21 @@
     jQuery.media = jQuery.media ? jQuery.media : {};
 
     // Connecting the media blocks to the player.
-    var mediaIndex = 0;
     var mediaplayer = null;
+    var mediaNids = [];
+    var mediaIndex = 0;
+    var mediaSelected = 'mediafront-selected-media';
 
     // Get the previous media node.
     jQuery.media.prevMedia = function() {
-      mediaIndex = (mediaIndex > 0) ? (mediaIndex - 1) : (jQuery.media.nodes.length - 1);
-      return jQuery.media.nodes[mediaIndex];
+      mediaIndex = (mediaIndex > 0) ? (mediaIndex - 1) : (mediaNids.length - 1);
+      return jQuery.media.nodes[mediaNids[mediaIndex]];
     };
 
     // Get the next media node.
     jQuery.media.nextMedia = function() {
-      mediaIndex = (mediaIndex < (jQuery.media.nodes.length - 1)) ? (mediaIndex + 1) : 0;
-      return jQuery.media.nodes[mediaIndex];
+      mediaIndex = (mediaIndex < (mediaNids.length - 1)) ? (mediaIndex + 1) : 0;
+      return jQuery.media.nodes[mediaNids[mediaIndex]];
     };
 
     // Loads a node by checking to see if it is a full object or not.
@@ -29,12 +31,16 @@
 
     // Load the next media.
     jQuery.media.loadNext = function() {
+      $("." + mediaSelected).removeClass(mediaSelected);
       jQuery.media.loadNode(jQuery.media.nextMedia());
+      $(jQuery.media.fieldSelector).eq(mediaIndex).parent().addClass(mediaSelected);
     };
 
     // Load the previous media.
     jQuery.media.loadPrev = function() {
+      $("." + mediaSelected).removeClass(mediaSelected);
       jQuery.media.loadNode(jQuery.media.prevMedia());
+      $(jQuery.media.fieldSelector).eq(mediaIndex).parent().addClass(mediaSelected);
     };
 
     // Only call this if the code is available.
@@ -54,17 +60,25 @@
         });
 
         // Load the first media.
-        jQuery.media.loadNode(jQuery.media.nodes[0]);
+        $(jQuery.media.fieldSelector).eq(0).parent().addClass(mediaSelected);
+        jQuery.media.loadNode(jQuery.media.nodes[mediaNids[0]]);
       });
     }
 
     // Iterate through all of the nid fields.
     $(jQuery.media.fieldSelector).each(function(index) {
+
+      // Get the nid for this item.
+      var nid = $(this).parent().find('.views-field-mediafront-nid .media-nid-hidden').text();
+      mediaNids.push(nid);
+
       // Alter the parent handler so that this becomes a link to the main player.
-      $(this).parent().css("cursor", "pointer").bind('click', function( event ) {
+      $(this).parent().css("cursor", "pointer").bind('click', {nid:nid, index:index}, function(event) {
         event.preventDefault();
-        mediaIndex = index;
-        jQuery.media.loadNode( jQuery.media.nodes[mediaIndex] );
+        $("." + mediaSelected).removeClass(mediaSelected);
+        $(this).addClass(mediaSelected);
+        mediaIndex = event.data.index;
+        jQuery.media.loadNode( jQuery.media.nodes[event.data.nid] );
       });
     });
 
