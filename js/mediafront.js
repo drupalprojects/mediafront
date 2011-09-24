@@ -32,15 +32,17 @@
     // Load the next media.
     jQuery.media.loadNext = function() {
       $("." + mediaSelected).removeClass(mediaSelected);
-      jQuery.media.loadNode(jQuery.media.nextMedia());
+      var newMedia = jQuery.media.nextMedia();
       $(jQuery.media.fieldSelector).eq(mediaIndex).parent().addClass(mediaSelected);
+      jQuery.media.loadNode(newMedia);
     };
 
     // Load the previous media.
     jQuery.media.loadPrev = function() {
       $("." + mediaSelected).removeClass(mediaSelected);
-      jQuery.media.loadNode(jQuery.media.prevMedia());
+      var newMedia = jQuery.media.prevMedia();
       $(jQuery.media.fieldSelector).eq(mediaIndex).parent().addClass(mediaSelected);
+      jQuery.media.loadNode(newMedia);
     };
 
     // Only call this if the code is available.
