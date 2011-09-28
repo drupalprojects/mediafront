@@ -45,7 +45,7 @@ function osmplayer_get_path() {
 function osmplayer_get_player_object($settings = null) {
   global $base_url, $user;
   static $instance = 0;
-  
+
   $player = null;
   if ($settings['preset']) {
     $preset = $settings['preset'];
@@ -231,19 +231,8 @@ function osmplayer_mediafront_preset_save($preset) {
 }
 
 /**
- * Get all the necessary paths needed by the media player
- */
-function osmplayer_get_player_paths() {
-  static $paths;
-  if (!$paths) {
-    $paths['playerPath'] = osmplayer_get_path();
-  }
-  return $paths;
-}
-
-/**
  * Implements hook_get_player_settings
- * 
+ *
  * These are the settings that the module implements...
  */
 function osmplayer_get_player_settings() {
@@ -252,7 +241,7 @@ function osmplayer_get_player_settings() {
 
 /**
  *  Implements hook_get_player_params.
- *  
+ *
  *  These are the parameters that the player requires...
  */
 function osmplayer_get_player_params() {
@@ -323,7 +312,7 @@ function osmplayer_player_settings_form($preset) {
     '#title' => t('Initialize FullScreen'),
     '#description' => t('Check this field if you would like the media player to initialize in full screen mode.  This is good for modal windows.'),
     '#default_value' => $preset['settings']['fullscreen']
-  );   
+  );
   $form['presentation']['zIndex'] = array(
     '#type' => 'textfield',
     '#title' => t('z-Index'),
@@ -672,10 +661,10 @@ function osmplayer_player_settings_form($preset) {
     '#description' => t('Select if you would like to see the debug statements from the Media Player.'),
     '#default_value' => $preset['settings']['debug']
   );
-  
+
 /**
  * Turn this off until Services for Drupal 7 has been hashed out...
- * 
+ *
   // If they have services module, then we need to get all the available API Keys.
   $hasServices = module_exists('services');
   $apiKeys = array();
@@ -695,7 +684,7 @@ function osmplayer_player_settings_form($preset) {
       '#options' => $apiKeys
     );
   }
-  
+
   $form['misc']['protocol'] = array(
     '#type' => 'select',
     '#title' => t('Communication Protocol'),
@@ -707,7 +696,7 @@ function osmplayer_player_settings_form($preset) {
       'rpc' => 'Services ( requires the Services Module )'
     )
   );
- * 
+ *
  */
   return $form;
 }
@@ -751,7 +740,7 @@ function osmplayer_get_skins() {
 function osmplayer_add_js($player) {
   // Add the javascript files.
   $js_files = $player->getJSFiles();
-  $playerPath = ltrim($player->getPlayerPath(), '/');
+  $playerPath = osmplayer_get_path() . '/';
   foreach ($js_files as $js_file) {
     drupal_add_js($playerPath . $js_file);
   }
@@ -798,8 +787,8 @@ function osmplayer_add_css($player, $preset) {
 
 /**
  * The template preprocess function for the osm media player.
- * 
- * @param $variables - The 
+ *
+ * @param $variables - The
  * @return unknown_type
  */
 function template_preprocess_osmplayer(&$variables) {
