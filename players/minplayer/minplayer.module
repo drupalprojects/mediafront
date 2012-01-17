@@ -113,9 +113,9 @@ function minplayer_get_player_settings() {
   return array(
     'width' => MINPLAYER_DEFAULT_WIDTH,
     'height' => MINPLAYER_DEFAULT_HEIGHT,
-    'fluidWidth' => true,
-    'showWhenEmpty' => true,
-    'debug' => false
+    'fluidWidth' => TRUE,
+    'showWhenEmpty' => TRUE,
+    'debug' => FALSE
   );
 }
 
@@ -129,7 +129,8 @@ function minplayer_get_player_params() {
     'id' => 'player',
     'template' => 'default',
     'volume' => 80,
-    'wmode' => 'transparent'
+    'wmode' => 'transparent',
+    'preload' => TRUE
   );
 }
 
@@ -203,7 +204,12 @@ function minplayer_player_settings_form($preset) {
     '#description' => t('Enter the initial volume for the player.'),
     '#default_value' => $preset['settings']['volume']
   );
-
+  $form['media_settings']['preload'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Auto Load'),
+    '#description' => t('If checked, the media will automatically start loading once the page loads.'),
+    '#default_value' => $preset['settings']['preload']
+  );
   /** TO-DO: IMPLEMENT THESE!
   $form['media_settings']['repeat'] = array(
     '#type' => 'checkbox',
@@ -216,12 +222,6 @@ function minplayer_player_settings_form($preset) {
     '#title' => t('Auto Start'),
     '#description' => t('If checked, the media will automatically load and play once the page loads.'),
     '#default_value' => $preset['settings']['autostart']
-  );
-  $form['media_settings']['autoLoad'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Auto Load'),
-    '#description' => t('If checked, the media will automatically start loading once the page loads.'),
-    '#default_value' => $preset['settings']['autoLoad']
   );
    *
    */
