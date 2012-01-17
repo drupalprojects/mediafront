@@ -47,9 +47,9 @@ function minplayer_theme() {
 }
 
 /**
- * Return the media uri.
+ * Return the media source.
  */
-function minplayer_get_src($type, $params) {
+function minplayer_get_src($type, &$params) {
   if (!isset($params['nodeObj']) && isset($params['node']) && $params['node']) {
     $params['nodeObj'] = mediafront_get_node($params['node'], NULL);
   }
@@ -72,11 +72,13 @@ function theme_minplayer($variables) {
   // Get the media source.
   $src = minplayer_get_src('media', $variables['params']);
 
+  // Set the id.
+  if (isset($variables['params']['nodeObj'])) {
+    $variables['params']['id'] = 'player-' . $variables['params']['nodeObj']['nid'];
+  }
+
   // Get the attributes.
   $attributes = html5_media_get_attributes($variables['params'], $src);
-
-  // Set the variables id.
-  $variables['params']['id'] = $attributes['id'];
 
   // Setup the 'element' provided the params.
   $variables['element'] = array(
