@@ -1,0 +1,243 @@
+<?php
+
+define('MINPLAYER_DEFAULT_WIDTH', '100%');
+define('MINPLAYER_DEFAULT_HEIGHT', '400px');
+
+/**
+ * Implements hook_get_player()
+ */
+function minplayer_get_player($params) {
+  $params = mediafront_get_settings('minplayer', $params);
+  return theme('minplayer', array('params' => $params));
+}
+
+/**
+ * Returns the path to the minPlayer.
+ */
+function minplayer_get_path() {
+  return drupal_get_path('module', 'minplayer') . '/player';
+}
+
+/**
+ * Builds an element provided params.
+ */
+function minplayer_build_element($params) {
+  return array(
+    '#theme' => 'html5_player',
+    '#tag' => 'video',
+    '#value' => '',
+    '#attributes' => html5_media_get_attributes($item, $settings),
+    '#settings' => $settings
+  );
+}
+
+/**
+ * Implements hook_theme
+ */
+function minplayer_theme() {
+  $theme = array();
+
+  // Create a media player theme.
+  $theme['minplayer'] = array(
+    'render element' => 'element',
+    'variables' => array('params' => NULL)
+  );
+
+  return $theme;
+}
+
+/**
+ * Return the media uri.
+ */
+function minplayer_get_src($type, $params) {
+  if (!isset($params['nodeObj']) && isset($params['node']) && $params['node']) {
+    $params['nodeObj'] = mediafront_get_node($params['node'], NULL);
+  }
+
+  if (isset($params['nodeObj']) &&
+      isset($params['nodeObj']['mediafiles']) &&
+      isset($params['nodeObj']['mediafiles'][$type]) &&
+      $media = array_shift($params['nodeObj']['mediafiles'][$type])) {
+    return $media->path;
+  }
+
+  return '';
+}
+
+/**
+ * Theme a minPlayer.
+ */
+function theme_minplayer($variables) {
+
+  // Get the media source.
+  $src = minplayer_get_src('media', $variables['params']);
+
+  // Get the attributes.
+  $attributes = html5_media_get_attributes($variables['params'], $src);
+
+  // Set the variables id.
+  $variables['params']['id'] = $attributes['id'];
+
+  // Setup the 'element' provided the params.
+  $variables['element'] = array(
+    '#tag' => 'video',
+    '#value' => '',
+    '#attributes' => $attributes,
+    '#settings' => $variables['params']
+  );
+
+  // Return the theme for our media player.
+  return theme('html5_player', $variables);
+}
+
+/**
+ * Implements hook_player_info()
+ */
+function minplayer_player_info() {
+  $info = array();
+  $info['minplayer'] = array(
+    'title' => 'minPlayer',
+    'description' => 'A minimalistic, HTML5, plugin based media player.'
+  );
+  return $info;
+}
+
+/**
+ * Implements hook_get_player_settings
+ *
+ * These are the settings that the module implements...
+ */
+function minplayer_get_player_settings() {
+  return array(
+    'width' => MINPLAYER_DEFAULT_WIDTH,
+    'height' => MINPLAYER_DEFAULT_HEIGHT,
+    'fluidWidth' => true,
+    'showWhenEmpty' => true,
+    'debug' => false
+  );
+}
+
+/**
+ *  Implements hook_get_player_params.
+ *
+ *  These are the parameters that the player requires...
+ */
+function minplayer_get_player_params() {
+  return array(
+    'id' => 'player',
+    'template' => 'default',
+    'volume' => 80,
+    'wmode' => 'transparent'
+  );
+}
+
+function minplayer_get_templates() {
+  return mediafront_get_directories('minplayer','player/templates');
+}
+
+/**
+ * Implements hook_player_settings_form
+ */
+function minplayer_player_settings_form($preset) {
+
+  /********************* PRESENTATION SETTINGS ***************************/
+  $form = array();
+  $form['presentation'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Presentation Settings'),
+    '#weight' => -10,
+    '#collapsible' => true,
+    '#collapsed' => true
+  );
+  $form['presentation']['template'] = array(
+    '#type' => 'select',
+    '#title' => t('Template'),
+    '#description' => t('Select the template you would like to use for this player.  The template provides specific functionality as well as the layout for the media player.  Each template can be found in the <strong>modules/mediafront/players/osmplayer/player/templates</strong> folder.'),
+    '#options' => minplayer_get_templates(),
+    '#default_value' => $preset['settings']['template']
+  );
+  $form['presentation']['width'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Player Width'),
+    '#description' => t('Enter the width of the player in pixels or percentage.'),
+    '#default_value' => $preset['settings']['width']
+  );
+  $form['presentation']['height'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Player Height'),
+    '#description' => t('Enter the height of the player.'),
+    '#default_value' => $preset['settings']['height']
+  );
+  $form['presentation']['showWhenEmpty'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show player when empty'),
+    '#description' => t('Check if you would like to show the player even if there is nothing to play'),
+    '#default_value' => $preset['settings']['showWhenEmpty']
+  );
+  $form['presentation']['wmode'] = array(
+    '#title' => t('Flash Window Mode'),
+    '#type' => 'select',
+    '#options' => array('none' => 'none', 'transparent' => 'transparent', 'window' => 'window'),
+    '#default_value' => $preset['settings']['wmode'],
+    '#description' => t('Selects which window mode you would like for the OSM Flash player to operate under (denoted by the <b>wmode</b> parameter in the object code)
+         <ul>
+            <li><b>none</b> - <em>No window mode</em></li>
+            <li><b>wmode=transparent</b> - <em>Allows for other elements to drop in front of the video (like a drop-down list), without the video showing over those elements.</em></li>
+            <li><b>wmode=window</b> - <em>Allows for the video to have full-screen support.</em></li>
+         </ul>')
+  );
+
+  /********************* MEDIA SETTINGS ***************************/
+  $form['media_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Media Settings'),
+    '#weight' => -9,
+    '#collapsible' => true,
+    '#collapsed' => true
+  );
+  $form['media_settings']['volume'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default Volume'),
+    '#description' => t('Enter the initial volume for the player.'),
+    '#default_value' => $preset['settings']['volume']
+  );
+
+  /** TO-DO: IMPLEMENT THESE!
+  $form['media_settings']['repeat'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Auto Repeat'),
+    '#description' => t('If checked, the media will play repeatidly.'),
+    '#default_value' => $preset['settings']['repeat']
+  );
+  $form['media_settings']['autostart'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Auto Start'),
+    '#description' => t('If checked, the media will automatically load and play once the page loads.'),
+    '#default_value' => $preset['settings']['autostart']
+  );
+  $form['media_settings']['autoLoad'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Auto Load'),
+    '#description' => t('If checked, the media will automatically start loading once the page loads.'),
+    '#default_value' => $preset['settings']['autoLoad']
+  );
+   *
+   */
+
+  $form['misc'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Other Settings'),
+    '#weight' => -3,
+    '#collapsible' => true,
+    '#collapsed' => true
+  );
+
+  $form['misc']['debug'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Player Debugging'),
+    '#description' => t('Select if you would like to see the debug statements from the Media Player.'),
+    '#default_value' => $preset['settings']['debug']
+  );
+
+  return $form;
+}

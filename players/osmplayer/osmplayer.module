@@ -701,37 +701,16 @@ function osmplayer_player_settings_form($preset) {
   return $form;
 }
 
-function osmplayer_get_directories($player_path) {
-  $directories = array();
-  $base_directory = getcwd() . '/';
-  $base_directory .= drupal_get_path('module', 'osmplayer') . '/';
-  $base_directory .= $player_path;
-
-  if (is_dir($base_directory) && $handle = opendir($base_directory)) {
-    while (FALSE !== ($directory = readdir($handle))) {
-      if ((strpos($directory, '.') === FALSE) &&
-              (strtolower($directory) !== 'cvs') &&
-              (is_dir($base_directory . '/' . $directory))) {
-        $directories[$directory] = $directory;
-      }
-    }
-
-    closedir($handle);
-  }
-
-  return $directories;
-}
-
 function osmplayer_get_themes() {
-  return osmplayer_get_directories('player/jquery-ui/css');
+  return mediafront_get_directories('osmplayer', 'player/jquery-ui/css');
 }
 
 function osmplayer_get_templates() {
-  return osmplayer_get_directories('player/templates');
+  return mediafront_get_directories('osmplayer','player/templates');
 }
 
 function osmplayer_get_skins() {
-  return osmplayer_get_directories('player/minplayer/skins');
+  return mediafront_get_directories('osmplayer','player/minplayer/skins');
 }
 
 /**

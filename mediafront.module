@@ -801,6 +801,28 @@ function mediafront_get_media_preview($media) {
 }
 
 /**
+ * Helper function to get the directories for media players.
+ */
+function mediafront_get_directories($module, $player_path) {
+  $directories = array();
+  $base_directory = getcwd() . '/';
+  $base_directory .= drupal_get_path('module', $module) . '/';
+  $base_directory .= $player_path;
+  if (is_dir($base_directory) && $handle = opendir($base_directory)) {
+    while (FALSE !== ($directory = readdir($handle))) {
+      if ((strpos($directory, '.') === FALSE) &&
+              (strtolower($directory) !== 'cvs') &&
+              (is_dir($base_directory . '/' . $directory))) {
+        $directories[$directory] = $directory;
+      }
+    }
+
+    closedir($handle);
+  }
+  return $directories;
+}
+
+/**
  * Implements hook_playlist_node()
  */
 function mediafront_playlist_node( $node ) {

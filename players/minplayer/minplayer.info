@@ -1,0 +1,8 @@
+name = minPlayer
+description = A minimalistic, HTML5, plugin based media player.
+package = "MediaFront : Players"
+dependencies[] = mediafront
+dependencies[] = html5_media
+core = 7.x
+files[] = minplayer.module
+required = FALSE
