@@ -11,7 +11,7 @@ function osmplayer_get_player($params) {
   $showPlayer = isset($params['showWhenEmpty']) ? $params['showWhenEmpty'] : TRUE;
 
   // Always show the player when viewing through the admin interface.
-  $showPlayer |= $params['admin'];
+  $showPlayer |= !empty($params['admin']);
 
   // If they provide the playlist object, encode it as JSON.
   if (isset($params['playlistObj']) && $params['playlistObj']) {
@@ -167,9 +167,7 @@ function osmplayer_theme() {
     osmplayer_add_theme($themes, $template, 'menu', $template_path);
     osmplayer_add_theme($themes, $template, 'controlbar', $template_path);
     osmplayer_add_theme($themes, $template, 'node', $template_path);
-    osmplayer_add_theme($themes, $template, 'nodevoter', $template_path);
     osmplayer_add_theme($themes, $template, 'teaser', $template_path);
-    osmplayer_add_theme($themes, $template, 'teaservoter', $template_path);
     osmplayer_add_theme($themes, $template, 'playlist', $template_path);
     osmplayer_add_theme($themes, $template, 'scrollbar', $template_path);
     osmplayer_add_theme($themes, $template, 'links', $template_path);
@@ -574,26 +572,6 @@ function osmplayer_player_settings_form($preset) {
     '#default_value' => $preset['settings']['controllerOnly']
   );
 
-  $form['voter_settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Voter Settings'),
-    '#weight' => -5,
-    '#collapsible' => true,
-    '#collapsed' => true
-  );
-  $form['voter_settings']['showNodeVoter'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Show Node Voter'),
-    '#description' => t('Select if you would like to see the node voter.'),
-    '#default_value' => $preset['settings']['showNodeVoter']
-  );
-  $form['voter_settings']['showTeaserVoter'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Show Teaser Voter'),
-    '#description' => t('Select if you would like to see the teaser voter.'),
-    '#default_value' => $preset['settings']['showTeaserVoter']
-  );
-
   $form['logo_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Logo Settings'),
@@ -803,8 +781,6 @@ function template_preprocess_osmplayer(&$variables) {
     template_preprocess($variables, 'osmplayer_' . $variables['params']['template']);
 
     // Now set up our templates within a template.
-    $variables['templates']['teaservoter'] = theme('osmplayer_' . $variables['params']['template'] . '_teaservoter', array('params' => $variables['params'], 'templates' => $variables['templates']));
-    $variables['templates']['voter'] = theme('osmplayer_' . $variables['params']['template'] . '_nodevoter', array('params' => $variables['params'], 'templates' => $variables['templates']));
     $variables['templates']['controlBar'] = theme('osmplayer_' . $variables['params']['template'] . '_controlbar', array('params' => $variables['params'], 'templates' => $variables['templates']));
     $variables['templates']['titlebar'] = theme('osmplayer_' . $template . '_titlebar', array('params' => $variables['params'], 'templates' => $variables['templates']));
     $variables['templates']['menu'] = theme('osmplayer_' . $template . '_menu', array('params' => $variables['params'], 'templates' => $variables['templates']));

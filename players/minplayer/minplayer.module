@@ -135,7 +135,7 @@ function minplayer_get_player_params() {
 }
 
 function minplayer_get_templates() {
-  return mediafront_get_directories('minplayer','player/templates');
+  return mediafront_get_directories('html5_media','player/templates');
 }
 
 /**
