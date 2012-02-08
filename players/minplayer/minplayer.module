@@ -55,37 +55,50 @@ function minplayer_get_sources($type, &$params) {
  */
 function theme_minplayer($variables) {
 
-  // Set the id.
-  if (isset($variables['params']['nodeObj'])) {
-    $variables['params']['id'] = 'player-' . $variables['params']['nodeObj']['nid'];
-  }
+  // Get the parameters.
+  $params = $variables['params'];
 
   // Get the attributes.
-  $attributes = html5_media_get_attributes($variables['params']);
+  $attributes = html5_media_get_attributes($params);
+
+  // Set the id.
+  if (isset($params['nodeObj'])) {
+    $params['id'] = 'player-' . $params['nodeObj']['nid'];
+  }
+
+  // See if we should show the player.
+  $showPlayer = isset($params['showWhenEmpty']) ? $params['showWhenEmpty'] : TRUE;
+
+  // Always show the player when viewing through the admin interface.
+  $showPlayer |= !empty($params['admin']);
 
   // Get the media sources and set the source of this media.
-  $media = minplayer_get_sources('media', $variables['params']);
-  $media = isset($media['media']) ? $media['media'] : array_shift($media);
-  if ($src = html5_media_get_src(array('value' => $media->path))) {
-    $attributes['src'] = $src;
+  $mediasrc = '';
+  if ($media = minplayer_get_sources('media', $params)) {
+    $media = isset($media['media']) ? $media['media'] : array_shift($media);
+    if ($mediasrc = html5_media_get_src(array('value' => $media->path))) {
+      $attributes['src'] = $mediasrc;
+    }
   }
 
   // Set the poster image.
-  if ($images = minplayer_get_sources('images', $variables['params'])) {
-    $img = isset($images['preview']) ? $images['preview'] : $images['image'];
-    $img = is_string($img) ? $img : $img->path;
-    $attributes['poster'] = $img;
+  $imgsrc = '';
+  if ($images = minplayer_get_sources('images', $params)) {
+    $imgsrc = isset($images['preview']) ? $images['preview'] : $images['image'];
+    $imgsrc = is_string($imgsrc) ? $imgsrc : $imgsrc->path;
+    $attributes['poster'] = $imgsrc;
   }
 
   // Setup the 'element' provided the params.
   $variables['element'] = array(
     '#tag' => 'video',
     '#attributes' => $attributes,
-    '#settings' => $variables['params']
+    '#settings' => $params
   );
 
   // Return the theme for our media player.
-  return theme('html5_player', $variables);
+  $hide = (!$imgsrc && !$mediasrc && !$showPlayer);
+  return $hide ? '' : theme('html5_player', $variables);
 }
 
 /**
