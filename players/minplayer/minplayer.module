@@ -204,22 +204,18 @@ function minplayer_player_settings_form($preset) {
     '#description' => t('If checked, the media will automatically start loading once the page loads.'),
     '#default_value' => $preset['settings']['preload']
   );
-  /** TO-DO: IMPLEMENT THESE!
-  $form['media_settings']['repeat'] = array(
+  $form['media_settings']['loop'] = array(
     '#type' => 'checkbox',
     '#title' => t('Auto Repeat'),
     '#description' => t('If checked, the media will play repeatidly.'),
-    '#default_value' => $preset['settings']['repeat']
+    '#default_value' => $preset['settings']['loop']
   );
-  $form['media_settings']['autostart'] = array(
+  $form['media_settings']['autoplay'] = array(
     '#type' => 'checkbox',
     '#title' => t('Auto Start'),
     '#description' => t('If checked, the media will automatically load and play once the page loads.'),
-    '#default_value' => $preset['settings']['autostart']
+    '#default_value' => $preset['settings']['autoplay']
   );
-   *
-   */
-
   $form['misc'] = array(
     '#type' => 'fieldset',
     '#title' => t('Other Settings'),
