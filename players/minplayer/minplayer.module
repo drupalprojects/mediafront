@@ -58,13 +58,13 @@ function theme_minplayer($variables) {
   // Get the parameters.
   $params = $variables['params'];
 
-  // Get the attributes.
-  $attributes = html5_media_get_attributes($params);
-
   // Set the id.
   if (isset($params['nodeObj'])) {
     $params['id'] = 'player-' . $params['nodeObj']['nid'];
   }
+
+  // Get the attributes.
+  $attributes = html5_media_get_attributes($params);
 
   // See if we should show the player.
   $showPlayer = isset($params['showWhenEmpty']) ? $params['showWhenEmpty'] : TRUE;
