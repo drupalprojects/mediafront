@@ -19,19 +19,6 @@ function minplayer_get_path() {
 }
 
 /**
- * Builds an element provided params.
- */
-function minplayer_build_element($params) {
-  return array(
-    '#theme' => 'html5_player',
-    '#tag' => 'video',
-    '#value' => '',
-    '#attributes' => html5_media_get_attributes($item, $settings),
-    '#settings' => $settings
-  );
-}
-
-/**
  * Implements hook_theme
  */
 function minplayer_theme() {
@@ -49,16 +36,15 @@ function minplayer_theme() {
 /**
  * Return the media source.
  */
-function minplayer_get_src($type, &$params) {
+function minplayer_get_sources($type, &$params) {
   if (!isset($params['nodeObj']) && isset($params['node']) && $params['node']) {
     $params['nodeObj'] = mediafront_get_node($params['node'], NULL);
   }
 
   if (isset($params['nodeObj']) &&
       isset($params['nodeObj']['mediafiles']) &&
-      isset($params['nodeObj']['mediafiles'][$type]) &&
-      $media = array_shift($params['nodeObj']['mediafiles'][$type])) {
-    return $media->path;
+      !empty($params['nodeObj']['mediafiles'][$type])) {
+    return $params['nodeObj']['mediafiles'][$type];
   }
 
   return '';
@@ -69,21 +55,29 @@ function minplayer_get_src($type, &$params) {
  */
 function theme_minplayer($variables) {
 
-  // Get the media source.
-  $src = minplayer_get_src('media', $variables['params']);
-
   // Set the id.
   if (isset($variables['params']['nodeObj'])) {
     $variables['params']['id'] = 'player-' . $variables['params']['nodeObj']['nid'];
   }
 
   // Get the attributes.
-  $attributes = html5_media_get_attributes($variables['params'], $src);
+  $attributes = html5_media_get_attributes($variables['params']);
+
+  // Get the media sources and set the source of this media.
+  $media = minplayer_get_sources('media', $variables['params']);
+  $media = isset($media['media']) ? $media['media'] : array_shift($media);
+  if ($src = html5_media_get_src(array('value' => $media->path))) {
+    $attributes['src'] = $src;
+  }
+
+  // Set the poster image.
+  if ($images = minplayer_get_sources('images', $variables['params'])) {
+    $attributes['poster'] = isset($images['preview']) ? $images['preview'] : $images['image'];
+  }
 
   // Setup the 'element' provided the params.
   $variables['element'] = array(
     '#tag' => 'video',
-    '#value' => '',
     '#attributes' => $attributes,
     '#settings' => $variables['params']
   );
