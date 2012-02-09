@@ -37,10 +37,13 @@ function minplayer_theme() {
  * Return the media source.
  */
 function minplayer_get_sources($type, &$params) {
+
+  // If no node object exists, then get the node.
   if (!isset($params['nodeObj']) && isset($params['node']) && $params['node']) {
     $params['nodeObj'] = mediafront_get_node($params['node'], NULL);
   }
 
+  // Return the media sources from this node.
   if (isset($params['nodeObj']) &&
       isset($params['nodeObj']['mediafiles']) &&
       !empty($params['nodeObj']['mediafiles'][$type])) {
@@ -73,11 +76,12 @@ function theme_minplayer($variables) {
   $showPlayer |= !empty($params['admin']);
 
   // Get the media sources and set the source of this media.
-  $mediasrc = '';
+  $mediasrc = array();
   if ($media = minplayer_get_sources('media', $params)) {
     $media = isset($media['media']) ? $media['media'] : array_shift($media);
-    if ($mediasrc = html5_media_get_src(array('value' => $media->path))) {
-      $attributes['src'] = $mediasrc;
+    $mediasrc['value'] = $media->path;
+    if (!empty($media->filemime)) {
+      $mediasrc['filemime'] = $media->filemime;
     }
   }
 
@@ -93,7 +97,8 @@ function theme_minplayer($variables) {
   $variables['element'] = array(
     '#tag' => 'video',
     '#attributes' => $attributes,
-    '#settings' => $params
+    '#settings' => $params,
+    '#sources' => array($mediasrc)
   );
 
   // Return the theme for our media player.

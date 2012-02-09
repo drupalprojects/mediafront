@@ -710,6 +710,7 @@ function mediafront_get_media_file( $file ) {
     $media_file->mediaType = "";
   }
 
+  $media_file->filemime = isset($file->filemime) ? $file->filemime : '';
   $media_file->player = isset($file->player) ? $file->player : '';
   $media_file->bytesTotal = isset($file->filesize) ? $file->filesize : 0;
   $media_file->duration = isset($file->duration) ? $file->duration : 0;
