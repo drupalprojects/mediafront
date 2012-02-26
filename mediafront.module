@@ -603,7 +603,7 @@ function mediafront_block_content() {
 
 /**
  * Determine if we should show the views block.
- * 
+ *
  * @param type $view
  * @return type
  */
@@ -884,8 +884,10 @@ function mediafront_playlist_node( $node ) {
         // Get the media type for this field.
         $media_field = mediafront_filefield_get( $node->type, $fieldname );
 
-        // If there is no media field defined OR if there is and they wish to include it.
-        if( !$media_field || ($media_field->media_type != 'none') ) {
+        // See if we would like to include this field.
+        if (!$media_field ||
+           (!empty($media_field->media_type) && ($media_field->media_type != 'none')) ||
+           !(($media_field->node_preset == 'none') && ($media_field->thumb_preset == 'none'))) {
 
           // Iterate through the file field instances.
           foreach( $field as $index => $instance ) {
