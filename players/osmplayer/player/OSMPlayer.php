@@ -101,8 +101,8 @@ class OSMPlayer {
     if( !$playerPath ) {
       // Set the base path and url of this class.
       $base_root = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ? 'https' : 'http';
-      $base_url = $base_root .= '://'. $_SERVER['HTTP_HOST'];
-      if ($dir = trim(dirname($_SERVER['SCRIPT_NAME']), '\,/')) {
+      $base_url = $base_root .= '://'. check_plain($_SERVER['HTTP_HOST']);
+      if ($dir = trim(dirname(check_plain($_SERVER['SCRIPT_NAME'])), '\,/')) {
          $base_url .= "/$dir";
       }
 
