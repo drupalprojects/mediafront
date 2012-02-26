@@ -93,8 +93,8 @@ function mediafront_preset_menu() {
     'page arguments' => array('mediafront_preset_export_form', 4),
     'access arguments' => array('administer mediafront presets'),
     'type' => MENU_CALLBACK
-  ); 
-   
+  );
+
   return $items;
 }
 
@@ -104,7 +104,7 @@ function mediafront_preset_menu() {
 function mediafront_presets_overview() {
   $presets = mediafront_preset_get_presets();
   $presets_path = mediafront_get_presets_path();
-  
+
   if( count( $presets ) > 0 ) {
     $header = array(t('Preset Name'), t('Description'), array('data' => t('Operations'), 'colspan' => '3'));
     $rows = array();
@@ -148,14 +148,14 @@ function mediafront_preset_form($form, &$form_state, $preset) {
    $form['settings'] = array(
       '#type' => 'fieldset',
       '#title' => t('Preset Settings'),
-      '#attributes' => array('id' => 'mediafront_admin_settings'),     
+      '#attributes' => array('id' => 'mediafront_admin_settings'),
       '#weight' => -9,
       '#collapsible' => false,
-      '#collapsed' => false   
+      '#collapsed' => false
    );
    $form['settings']['preset'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Preset Information'),    
+      '#title' => t('Preset Information'),
       '#weight' => -9,
       '#collapsible' => true,
       '#collapsed' => true
@@ -167,11 +167,11 @@ function mediafront_preset_form($form, &$form_state, $preset) {
         '#value' => $preset['pid'],
      );
    }
-   
+
    $form['settings']['preset']['name'] = array(
       '#type' => 'value',
       '#value' => $preset['name'],
-   );   
+   );
    $form['settings']['preset']['description'] = array(
       '#type' => 'textfield',
       '#title' => t('Description'),
@@ -182,28 +182,28 @@ function mediafront_preset_form($form, &$form_state, $preset) {
    $form['settings']['preset']['player'] = array(
       '#type' => 'value',
       '#value' => $preset['player'],
-   );    
-   
+   );
+
    $form['settings']['player_settings'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Player Settings'),      
+      '#title' => t('Player Settings'),
       '#weight' => -8,
       '#collapsible' => true,
       '#collapsed' => true,
       '#tree' => TRUE,
    );
-   
+
    // Now add the player settings form to this fieldset.
    $form['settings']['player_settings'] = array_merge( mediafront_player_settings_form($preset), $form['settings']['player_settings'] );
-   
+
    // Add the player to player settings.
    $form['settings']['connect'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Player to Player'),  
+      '#title' => t('Player to Player'),
       '#collapsible' => true,
       '#collapsed' => true
    );
-   
+
    $result = mediafront_preset_get_presets();
    $presets = array();
    foreach( $result as $pid => $otherPreset ) {
@@ -231,23 +231,23 @@ function mediafront_preset_form($form, &$form_state, $preset) {
         '#options' => $presets
      );
    }
-   
+
    $form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save Preset'),
       '#weight' => 30,
-   );   
-   
+   );
+
    $form['delete'] = array(
       '#type' => 'submit',
       '#value' => t('Delete'),
       '#weight' => 40,
       '#submit' => array('mediafront_preset_delete_submit'),
-    );    
-   
+    );
+
    // Add the form submit handler.
    $form['#submit'][] = 'mediafront_preset_submit';
-   $form['#validate'][] = 'mediafront_preset_validate';   
+   $form['#validate'][] = 'mediafront_preset_validate';
    return $form;
 }
 
@@ -291,8 +291,8 @@ function mediafront_preset_submit($form, &$form_state) {
      'iscontroller' => isset($form_state['values']['iscontroller']) ? $form_state['values']['iscontroller'] : array(),
      'isplaylist' => isset($form_state['values']['isplaylist']) ? $form_state['values']['isplaylist'] : array()
   );
-  
-  // Now set the player settings that are only different from the defaults.  
+
+  // Now set the player settings that are only different from the defaults.
   $preset['settings'] = mediafront_get_settings( $preset['player'], mediafront_preset_array_flatten($form_state['values']['player_settings']) );
 
   // Save this preset.
@@ -367,6 +367,7 @@ function mediafront_preset_create_form($form, &$form_state) {
     '#title' => t('Media Player'),
     '#description' => t('Select which player you would like to use for this preset.'),
     '#options' => $options,
+    '#default_value' => 'osmplayer',
     '#weight' => -8,
   );
 
@@ -527,7 +528,7 @@ function mediafront_preset_save( $preset ) {
 
 /**
  * Returns the default presets.
- * 
+ *
  * @return <type>
  */
 function mediafront_preset_get_default_presets() {
@@ -570,8 +571,8 @@ function mediafront_preset_get_presets() {
 
 /**
  * Used for the menu item to load a preset.
- * 
- * @param <type> $preset_name 
+ *
+ * @param <type> $preset_name
  */
 function mediafront_preset_load( $preset_name ) {
   return mediafront_get_preset( $preset_name );
@@ -626,12 +627,12 @@ function mediafront_preset_name_exists( $preset_name ) {
 
   // Get the default presets.
   $default_presets = mediafront_preset_get_default_presets();
-  
+
   // See if there is a default preset name.
   if( $default_presets && isset($default_presets[$preset_name]) ) {
-    return true; 
-  }    
-  else { 
+    return true;
+  }
+  else {
     return (bool)db_select('mediafront_preset', 'p')
       ->fields('p')
       ->condition('p.name', $preset_name)
