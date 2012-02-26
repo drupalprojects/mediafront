@@ -170,7 +170,6 @@ function osmplayer_theme() {
     osmplayer_add_theme($themes, $template, 'teaser', $template_path);
     osmplayer_add_theme($themes, $template, 'playlist', $template_path);
     osmplayer_add_theme($themes, $template, 'scrollbar', $template_path);
-    osmplayer_add_theme($themes, $template, 'links', $template_path);
     osmplayer_add_theme($themes, $template, 'pager', $template_path);
   }
   return $themes;
@@ -642,43 +641,6 @@ function osmplayer_player_settings_form($preset) {
     '#description' => t('Select if you would like to see the debug statements from the Media Player.'),
     '#default_value' => $preset['settings']['debug']
   );
-
-/**
- * Turn this off until Services for Drupal 7 has been hashed out...
- *
-  // If they have services module, then we need to get all the available API Keys.
-  $hasServices = module_exists('services');
-  $apiKeys = array();
-  if ($hasServices) {
-    $result = db_select('services_keys', 's')->fields('s')->execute();
-    foreach ($result as $key) {
-      $apiKeys[$key->kid] = $key->title;
-    }
-  }
-
-  if ($hasServices) {
-    $form['misc']['apiKey'] = array(
-      '#type' => 'select',
-      '#title' => t('API Key'),
-      '#description' => t('Select which API key you would like to use for this preset.'),
-      '#default_value' => $preset['settings']['apiKey'],
-      '#options' => $apiKeys
-    );
-  }
-
-  $form['misc']['protocol'] = array(
-    '#type' => 'select',
-    '#title' => t('Communication Protocol'),
-    '#description' => t('Enter the communication protocol for this player to use.'),
-    '#default_value' => $preset['settings']['protocol'],
-    '#options' => array(
-      'auto' => 'Auto ( Uses both ajax and rpc )',
-      'json' => 'Ajax ( JSON )',
-      'rpc' => 'Services ( requires the Services Module )'
-    )
-  );
- *
- */
   return $form;
 }
 
@@ -757,44 +719,58 @@ function template_preprocess_osmplayer(&$variables) {
   // Let the mediafront populate all the variables for us.
   mediafront_template_preprocess($variables);
 
+  // Get the params.
+  $params = &$variables['params'];
+
+  // Get the templates.
+  $templates = &$variables['templates'];
+
   // Get the media player.
-  $player = osmplayer_get_player_object($variables['params']);
+  $player = osmplayer_get_player_object($params);
 
   if ($player) {
-    $variables['params']['id'] = $player->getId();
+    $params['id'] = $player->getId();
 
     // Add the javascript for this player.
     osmplayer_add_js($player);
 
     // Add the CSS files for this player.
-    osmplayer_add_css($player, $variables['params']['preset']);
+    osmplayer_add_css($player, $params['preset']);
 
     // Make sure they always have a template, theme, and version...
-    $template = $variables['params']['template'] = $player->getTemplate();
-    $variables['params']['theme'] = $player->getTheme();
-    $variables['params']['version'] = $player->template->getVersion();
+    $template = $params['template'] = $player->getTemplate();
+    $params['theme'] = $player->getTheme();
+    $params['version'] = $player->template->getVersion();
 
     // Get the player prefix.
-    $variables['params']['prefix'] = $player->getPrefix();
+    $params['prefix'] = $player->getPrefix();
 
     // Make sure we call the template_preprocess.
-    template_preprocess($variables, 'osmplayer_' . $variables['params']['template']);
+    template_preprocess($variables, 'osmplayer_' . $params['template']);
 
     // Now set up our templates within a template.
-    $variables['templates']['controlBar'] = theme('osmplayer_' . $variables['params']['template'] . '_controlbar', array('params' => $variables['params'], 'templates' => $variables['templates']));
-    $variables['templates']['titlebar'] = theme('osmplayer_' . $template . '_titlebar', array('params' => $variables['params'], 'templates' => $variables['templates']));
-    $variables['templates']['menu'] = theme('osmplayer_' . $template . '_menu', array('params' => $variables['params'], 'templates' => $variables['templates']));
-    $variables['templates']['node'] = theme('osmplayer_' . $template . '_node', array('params' => $variables['params'], 'templates' => $variables['templates']));
-    $variables['templates']['teaser'] = theme('osmplayer_' . $variables['params']['template'] . '_teaser', array('params' => $variables['params'], 'templates' => $variables['templates']));
-    $variables['templates']['scrollBar'] = theme('osmplayer_' . $variables['params']['template'] . '_scrollbar', array('params' => $variables['params'], 'templates' => $variables['templates']));
-    $variables['templates']['links'] = $variables['params']['links'] ? theme('osmplayer_' . $variables['params']['template'] . '_links', array('params' => $variables['params'], 'templates' => $variables['templates'])) : '';
-    $variables['templates']['pager'] = theme('osmplayer_' . $variables['params']['template'] . '_pager', array('params' => $variables['params'], 'templates' => $variables['templates']));
-    $variables['templates']['playlist'] = theme('osmplayer_' . $template . '_playlist', array('params' => $variables['params'], 'templates' => $variables['templates']));
+    $hooks = theme_get_registry(FALSE);
+    $subtemplates = array(
+      'controlBar' => 'controlbar',
+      'titlebar' => 'titlebar',
+      'menu' => 'menu',
+      'node' => 'node',
+      'teaser' => 'teaser',
+      'scrollBar' => 'scrollbar',
+      'pager' => 'pager',
+      'playlist' => 'playlist'
+    );
+
+    // Iterate through all the possible subtemplates.
+    foreach ($subtemplates as $name => $subtemplate) {
+      $hook = 'osmplayer_' . $template . '_' . $subtemplate;
+      $templates[$name] = isset($hooks[$hook]) ? theme($hook, array('params' => $params, 'templates' => $templates)) : '';
+    }
 
     // Determine the width and height.
-    $width = ($variables['params']['playlistOnly'] && $variables['params']['vertical']) ? '' : ('width:' . $variables['params']['width'] . 'px;');
-    $variables['width'] = $variables['params']['fluidWidth'] ? 'width:100%;' : $width;
-    $height = (($variables['params']['playlistOnly'] && !$variables['params']['vertical']) || $variables['params']['controllerOnly']) ? '' : ('height:' . $variables['params']['height'] . 'px;');
-    $variables['height'] = $variables['params']['fluidHeight'] ? 'height:100%;' : $height;
+    $width = ($params['playlistOnly'] && $params['vertical']) ? '' : ('width:' . $params['width'] . 'px;');
+    $variables['width'] = $params['fluidWidth'] ? 'width:100%;' : $width;
+    $height = (($params['playlistOnly'] && !$params['vertical']) || $params['controllerOnly']) ? '' : ('height:' . $params['height'] . 'px;');
+    $variables['height'] = $params['fluidHeight'] ? 'height:100%;' : $height;
   }
 }
