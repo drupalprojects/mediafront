@@ -222,19 +222,19 @@ function minplayer_player_settings_form($preset) {
     '#type' => 'checkbox',
     '#title' => t('Auto Load'),
     '#description' => t('If checked, the media will automatically start loading once the page loads.'),
-    '#default_value' => $preset['settings']['preload']
+    '#default_value' => !empty($preset['settings']['preload'])
   );
   $form['media_settings']['loop'] = array(
     '#type' => 'checkbox',
     '#title' => t('Auto Repeat'),
     '#description' => t('If checked, the media will play repeatidly.'),
-    '#default_value' => $preset['settings']['loop']
+    '#default_value' => !empty($preset['settings']['loop'])
   );
   $form['media_settings']['autoplay'] = array(
     '#type' => 'checkbox',
     '#title' => t('Auto Start'),
     '#description' => t('If checked, the media will automatically load and play once the page loads.'),
-    '#default_value' => $preset['settings']['autoplay']
+    '#default_value' => !empty($preset['settings']['autoplay'])
   );
   $form['misc'] = array(
     '#type' => 'fieldset',
