@@ -57,14 +57,9 @@ function mediafront_theme() {
     'arguments' => array('view' => NULL, 'preset' => NULL)
   );
 
-  $theme['mediafront_player_formatter'] = array(
-    'render element' => 'element',
-    'arguments' => array('items' => NULL)
-  );
-
   $theme['mediafront_player'] = array(
     'render element' => 'element',
-    'arguments' => array('entity' => NULL, 'preset' => NULL, 'media' => NULL)
+    'arguments' => array('element' => NULL)
   );
 
   $theme['mediafront_field'] = array(
@@ -92,15 +87,22 @@ function theme_mediafront_player_view($variables) {
  * Implement the theme for the media player.
  */
 function theme_mediafront_player($variables) {
-  $entity = $variables['entity'];
-  $preset = $variables['preset'];
 
-  // Get the node for this player in JSON format.
-  if (!empty($variables['media'])) {
-    $params['nodeObj'] = $variables['media'];
+  // Get the correct variables.
+  $variables = !empty($variables['entity']) ? array_shift($variables) : $variables;
+
+  // Get the entity and preset.
+  $entity = $variables['#entity'];
+  $preset = $variables['#preset'];
+
+  // If the media field is set, then just get the media directly.
+  if (!empty($variables['#media_field'])) {
+    $params = array('nodeObj' => mediafront_get_media($entity, $variables['#media_field'], $variables['#preview_field']));
   }
   else {
-    $params['nodeObj'] = mediafront_invoke_node($entity, array());
+
+    // Search for media... TO-DO: DEPRECATE THIS...
+    $params = array('nodeObj' => mediafront_invoke_node($entity, array()));
   }
 
   // Also set the nodeId for those who cannot just use the object.

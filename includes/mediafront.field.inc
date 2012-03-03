@@ -20,11 +20,11 @@ function mediafront_field_formatter_info() {
 /**
  * Implements hook_field_formatter_settings_form
  */
-function mediafront_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+function mediafront_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state, $type = 'mediafront_player') {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
   $element = array();
-  if ($display['type'] == 'mediafront_player') {
+  if ($display['type'] == $type) {
 
     // Get the presets.
     $presets = array();
@@ -60,11 +60,11 @@ function mediafront_field_formatter_settings_form($field, $instance, $view_mode,
 /**
  * Implements hook_field_formatter_settings_summary
  */
-function mediafront_field_formatter_settings_summary($field, $instance, $view_mode) {
+function mediafront_field_formatter_settings_summary($field, $instance, $view_mode, $type = 'mediafront_player') {
   $display = $instance['display'][$view_mode];
   $settings = $display['settings'];
   $summary = '';
-  if ($display['type'] == 'mediafront_player') {
+  if ($display['type'] == $type) {
     $header = array('Setting', 'Value');
     $rows = array();
     foreach ($settings as $name => $value) {
@@ -78,34 +78,19 @@ function mediafront_field_formatter_settings_summary($field, $instance, $view_mo
 /**
  * Implements hook_field_formatter_view().
  */
-function mediafront_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+function mediafront_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display, $type = 'mediafront_player') {
   $element = array();
-  if ($display['type'] == 'mediafront_player') {
+  if ($display['type'] == $type) {
     $settings = $display['settings'];
     $element[] = array(
-      '#theme' => 'mediafront_player_formatter',
+      '#theme' => $type,
       '#entity' => $entity,
       '#preset' => $settings['preset'],
-      '#preview' => $settings['preview'],
-      '#media' => $instance['field_name']
+      '#preview_field' => $settings['preview'],
+      '#media_field' => $instance['field_name'],
+      '#type' => $display['type']
     );
   }
   return $element;
-}
-
-/**
- * Theme for the Media Player field.
- */
-function theme_mediafront_player_formatter($variables) {
-  $variables = array_shift($variables);
-  $preset = $variables['#preset'];
-  $entity = $variables['#entity'];
-  $media = $variables['#media'];
-  $preview = $variables['#preview'];
-  return theme('mediafront_player', array(
-    'entity' => $entity,
-    'preset' => $preset,
-    'media' => mediafront_get_media($entity, $media, $preview)
-  ));
 }
 ?>
