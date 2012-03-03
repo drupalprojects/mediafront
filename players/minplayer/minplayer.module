@@ -37,13 +37,6 @@ function minplayer_theme() {
  * Return the media source.
  */
 function minplayer_get_sources($type, &$params) {
-
-  // If no node object exists, then get the node.
-  if (!isset($params['nodeObj']) && isset($params['node']) && $params['node']) {
-    $params['nodeObj'] = mediafront_get_node($params['node'], NULL);
-  }
-
-  // Return the media sources from this node.
   if (isset($params['nodeObj']) &&
       isset($params['nodeObj']['mediafiles']) &&
       !empty($params['nodeObj']['mediafiles'][$type])) {

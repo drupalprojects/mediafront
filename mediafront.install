@@ -180,10 +180,3 @@ function mediafront_update_7006() {
 function mediafront_update_7007() {
   mediafront_update_7006();
 }
-
-/**
- * Migrate from MediaFront 1.x to 2.x.
- */
-function mediafront_update_7200() {
-
-}

@@ -26,19 +26,8 @@ function mediafront_field_formatter_settings_form($field, $instance, $view_mode,
   $element = array();
   if ($display['type'] == $type) {
 
-    // Get the presets.
-    $presets = array();
-    foreach (mediafront_preset_get_presets() as $preset) {
-      $presets[$preset['name']] = $preset['name'];
-    }
-
-    // The preset to use for this media player.
-    $element['preset'] = array(
-      '#title' => t('Preset'),
-      '#type' => 'select',
-      '#options' => $presets,
-      '#default_value' => $settings['preset']
-    );
+    // Add the perset selection.
+    $element['preset'] = mediafront_preset_select_form($settings, 'preset');
 
     $options = array();
     $fields = field_info_instances($instance['entity_type'], $instance['bundle']);

@@ -16,27 +16,39 @@ class MediaFile {
   /** The type for this media. */
   public $type = '';
 
+  /** The original file object. */
+  public $file = null;
+
   public function __construct($file) {
-    $file = gettype($file) == 'string' ? array('path' => $file) : $file;
-    $file = (object)$file;
 
-    // Get the full file path.
-    $this->path = $this->getPath($file);
+    // Check to make sure it is set.
+    if (!empty($file)) {
 
-    // Get the extension.
-    $this->extension = empty($file->extension) ? $this->getExt() : $file->extension;
+      // Standardize the type of the incoming data.
+      $file = gettype($file) == 'string' ? array('path' => $file) : $file;
+      $file = (object)$file;
 
-    // Get the filemime.
-    $this->mimetype = $this->getMimeType($file);
+      // Set the file object.
+      $this->file = $file;
 
-    // Get the type for this media.
-    $this->type = $this->getType();
+      // Get the full file path.
+      $this->path = $this->getPath($file);
 
-    // Get the class for the media.
-    $this->class = $this->getClass();
+      // Get the extension.
+      $this->extension = empty($file->extension) ? $this->getExt() : $file->extension;
 
-    // Get the mediaType.
-    $this->mediaType = !empty($file->mediaType) ? $file->mediaType : $this->class;
+      // Get the filemime.
+      $this->mimetype = $this->getMimeType($file);
+
+      // Get the type for this media.
+      $this->type = $this->getType();
+
+      // Get the class for the media.
+      $this->class = $this->getClass();
+
+      // Get the mediaType.
+      $this->mediaType = !empty($file->mediaType) ? $file->mediaType : $this->class;
+    }
   }
 
   /**
