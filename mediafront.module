@@ -64,7 +64,7 @@ function mediafront_theme() {
 
   $theme['mediafront_player'] = array(
     'render element' => 'element',
-    'arguments' => array('entity' => NULL, 'preset' => NULL)
+    'arguments' => array('entity' => NULL, 'preset' => NULL, 'media' => NULL)
   );
 
   $theme['mediafront_field'] = array(
@@ -78,7 +78,7 @@ function mediafront_theme() {
 /**
  * Implement the theme for the media player for the Views module.
  */
-function theme_mediafront_player_view( $variables ) {
+function theme_mediafront_player_view($variables) {
   $view = $variables['view'];
   $preset = $variables['preset'];
   $params['playlistObj'] = mediafront_get_playlist_from_view( $view );
@@ -91,12 +91,17 @@ function theme_mediafront_player_view( $variables ) {
 /**
  * Implement the theme for the media player.
  */
-function theme_mediafront_player( $variables ) {
+function theme_mediafront_player($variables) {
   $entity = $variables['entity'];
   $preset = $variables['preset'];
 
   // Get the node for this player in JSON format.
-  $params['nodeObj'] = mediafront_invoke_node( $entity, array() );
+  if (!empty($variables['media'])) {
+    $params['nodeObj'] = $variables['media'];
+  }
+  else {
+    $params['nodeObj'] = mediafront_invoke_node($entity, array());
+  }
 
   // Also set the nodeId for those who cannot just use the object.
   $params['node'] = $entity->nid;
@@ -211,62 +216,6 @@ function mediafront_template_preprocess(&$variables) {
   // Get only the necessary settings for this player that are different than the defaults.
   $variables['player_params'] = $variables['params'];
   $variables['params'] = mediafront_get_settings( $variables['params']['player'], $variables['params'] );
-}
-
-/**
- * Implements hook_service()
- */
-function mediafront_service() {
-  return array(
-    array(
-      '#method'   => 'mediafront.getPlaylist',
-      '#callback' => 'mediafront_get_playlist',
-      '#access arguments' => array('access content'),
-      '#key'      => FALSE,
-      '#args'     => array(
-        array(
-          '#name'         => 'playlist',
-          '#type'         => 'string',
-          '#description'  => t('Playlist name.')),
-        array(
-          '#name'         => 'limit',
-          '#type'         => 'int',
-          '#optional'     => TRUE,
-          '#description'  => t('The limit for the view to show.')),
-        array(
-          '#name'         => 'page',
-          '#type'         => 'int',
-          '#optional'     => TRUE,
-          '#description'  => t('The page number to show.')),
-        array(
-          '#name'         => 'args',
-          '#type'         => 'array',
-          '#optional'     => TRUE,
-          '#description'  => t('An array of arguments to pass to the view.'))
-      ),
-      '#return'   => 'array',
-      '#help'     => t('Retrieves a playlist.')
-    ),
-    array(
-      '#method'   => 'mediafront.getNode',
-      '#callback' => 'mediafront_get_node',
-      '#access arguments' => array('access content'),
-      '#key'      => FALSE,
-      '#args'     => array(
-        array(
-          '#name'         => 'nid',
-          '#type'         => 'int',
-          '#description'  => t('The node Id for the node you wish to get.')),
-        array(
-          '#name'         => 'args',
-          '#type'         => 'array',
-          '#optional'     => TRUE,
-          '#description'  => t('An array of arguments to pass to the node.'))
-      ),
-      '#return'   => 'array',
-      '#help'     => t('Retrieves a node.')
-    )
-  );
 }
 
 /**
@@ -645,7 +594,7 @@ function mediafront_get_extension( $file ) {
 /**
  * Checks to see if a file is an image file.
  */
-function mediafront_is_image( $mimetype, $extension ) {
+function mediafront_is_image($mimetype, $extension) {
   $image = in_array( $extension, array('jpg', 'jpeg', 'png', 'gif'));
   $image |= in_array( $mimetype, array('image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'jpg', 'jpeg', 'png', 'gif'));
   return $image;
@@ -654,7 +603,7 @@ function mediafront_is_image( $mimetype, $extension ) {
 /**
  * Checks to see if a file is a media file.
  */
-function mediafront_is_media( $mimetype, $extension ) {
+function mediafront_is_media($mimetype, $extension) {
   if( in_array(substr($mimetype, 0, 5), array('video', 'audio')) ) {
     return true;
   }
@@ -687,21 +636,21 @@ function mediafront_get_media_filepath( $file ) {
  * @param object $file - The Drupal file to use when determining the media player file object.
  * @return object - The media player file object, if it is valid.
  */
-function mediafront_get_media_file( $file ) {
+function mediafront_get_media_file($file) {
   $media_file = new stdClass();
 
-  $media_file->path = mediafront_get_media_filepath( $file );
-  $media_file->extension = mediafront_get_extension( $media_file->path );
+  $media_file->path = mediafront_get_media_filepath($file);
+  $media_file->extension = mediafront_get_extension($media_file->path);
 
-  if( isset($file->class) && isset($file->mediaType) ) {
+  if (isset($file->class) && isset($file->mediaType)) {
     $media_file->class = $file->class;
     $media_file->mediaType = $file->mediaType;
   }
-  else if( mediafront_is_image( $file->filemime, $media_file->extension ) ) {
+  else if(mediafront_is_image($file->filemime, $media_file->extension)) {
     $media_file->class = "images";
     $media_file->mediaType = "image";
   }
-  else if( mediafront_is_media( $file->filemime, $media_file->extension ) ) {
+  else if(mediafront_is_media( $file->filemime, $media_file->extension )) {
     $media_file->class = "media";
     $media_file->mediaType = (isset($file->mediaType) && $file->mediaType) ? $file->mediaType : "media";
   }
@@ -716,7 +665,6 @@ function mediafront_get_media_file( $file ) {
   $media_file->duration = isset($file->duration) ? $file->duration : 0;
   $media_file->width = isset($file->width) ? $file->width : 0;
   $media_file->height = isset($file->height) ? $file->height : 0;
-
   return $media_file;
 }
 
@@ -821,6 +769,116 @@ function mediafront_get_directories($module, $player_path) {
     closedir($handle);
   }
   return $directories;
+}
+
+/**
+ * Populates the node media provided a field value.
+ *
+ * @param type $entity
+ * @param type $value
+ */
+function mediafront_add_field_value(&$node, $value) {
+
+  // If this value was added.
+  $added = false;
+
+  // Create a new file object.
+  $file = new stdClass();
+
+  // If this is a text value.
+  if (!empty($value['value'])) {
+    $file->path = $value['value'];
+  }
+
+  // If this is a file.
+  else if (!empty($value['fid'])) {
+    if (!empty($value['data'])) {
+      $file = (object)$value['data'];
+    }
+    else if (!empty($value['filename'])) {
+      $file = (object)$value;
+    }
+    else {
+      $file = file_load($value['fid']);
+    }
+  }
+
+  // Get the translated media file.
+  if ($media_file = mediafront_get_media_file($file)) {
+    if ($media_file->class && $media_file->mediaType) {
+      if (($media_file->mediaType != "image") && isset($node["mediafiles"][$media_file->class][$media_file->mediaType])) {
+        $media = $node["mediafiles"][$media_file->class][$media_file->mediaType];
+        $files = is_array($media) ? $media : array($media);
+        array_push($files, $media_file);
+        $node["mediafiles"][$media_file->class][$media_file->mediaType] = $files;
+        $added = true;
+      }
+      else {
+        $node["mediafiles"][$media_file->class][$media_file->mediaType] = $media_file;
+        $added = true;
+      }
+    }
+  }
+
+  return $added;
+}
+
+/**
+ * Populates all the field values onto a node reference.
+ *
+ * @param type $node
+ * @param type $entity
+ * @param type $field_name
+ */
+function mediafront_add_field_values(&$node, $entity, $field_name) {
+  $added = false;
+
+  // Get the values.
+  $items = field_get_items('node', $entity, $field_name);
+
+  // Iterate through the media.
+  foreach ($items as $item) {
+
+    // Add this media to the node object.
+    $added |= mediafront_add_field_value($node, $item);
+  }
+
+  // Return if it was added.
+  return $added;
+}
+
+/**
+ * Provided an entity, media field, and preview field, this retrieves the
+ * mediafiles.
+ *
+ * @param {object} entity The entity to search.
+ * @param {array} media The media field name.
+ * @param {array} preview The preview field name.
+ * @return {array} The media node object.
+ */
+function mediafront_get_media($entity, $media, $preview) {
+
+  // Create our node object.
+  $node = array();
+
+  // Add the media field values.
+  if (!mediafront_add_field_values($node, $entity, $media)) {
+
+    // If none was added, then just add the raw value.
+    $items = field_get_items('node', $entity, $media);
+    $node["mediafiles"]["media"]["media"] = $items[0]['value'];
+  }
+
+  // Add the preview field values.
+  if (!mediafront_add_field_values($node, $entity, $preview)) {
+
+    // If none was added, then just add the raw value.
+    $items = field_get_items('node', $entity, $preview);
+    $node["mediafiles"]["images"]["image"] = $items[0]['value'];
+  }
+
+  // Return the node object.
+  return $node;
 }
 
 /**

@@ -1,77 +1,78 @@
 <?php
-/**
- * Implements hook_field_info().
- */
-function mediafront_field_info() {
-  $presets = mediafront_preset_get_presets();
-  $preset = array_shift( $presets );
-  $default_formatter = ($preset) ? 'mediaplayer__' . $preset['name'] : 'hidden';
-
-  return array(
-    'mediaplayer' => array(
-      'label' => t('Media Player'),
-      'description' => t('Add a media player to this entity.'),
-      'default_widget' => 'mediaplayer',
-      'default_formatter' => $default_formatter,
-      'instance_settings' => array(
-        'show_player' => true
-      ),
-    ),
-  );
-}
-
-/**
- * Implements hook_field_schema().
- */
-function mediafront_field_schema($field) {
-  return array(
-    'columns' => array(
-      'fid' => array(
-        'description' => 'The file field being referenced.',
-        'type' => 'int',
-        'not null' => FALSE,
-        'unsigned' => TRUE,
-      ),
-      'name' => array(
-        'description' => "The name of the file field.",
-        'type' => 'varchar',
-        'length' => 128,
-        'not null' => FALSE,
-      ),
-    ),
-    'indexes' => array(
-      'fid' => array('fid'),
-    ),
-  );
-}
-
-/**
- * Implements hook_field_widget_info().
- */
-function mediafront_field_widget_info() {
-  return array(
-    'mediaplayer' => array(
-      'label' => t('Media Player'),
-      'description' => t('Add a media player to this entity.'),
-      'field types' => array('mediaplayer')
-    ),
-  );
-}
 
 /**
  * Implements hook_field_formatter_info().
  */
 function mediafront_field_formatter_info() {
-  $formatters = array();
+  return array(
+    'mediafront_player' => array(
+      'label' => t('MediaFront Player'),
+      'description' => t('Play this file using a MediaFront Preset.'),
+      'field types' => array('file', 'text'),
+      'settings' => array(
+        'preset' => '',
+        'preview' => ''
+      )
+    )
+  );
+}
 
-  foreach (mediafront_preset_get_presets() as $preset) {
-    $formatters['mediaplayer__' . $preset['name']] = array(
-      'label' => t('@preset', array('@preset' => $preset['name'])),
-      'description' => t('Allows the Media Player field to be displayed.'),
-      'field types' => array('mediaplayer'),
+/**
+ * Implements hook_field_formatter_settings_form
+ */
+function mediafront_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $element = array();
+  if ($display['type'] == 'mediafront_player') {
+
+    // Get the presets.
+    $presets = array();
+    foreach (mediafront_preset_get_presets() as $preset) {
+      $presets[$preset['name']] = $preset['name'];
+    }
+
+    // The preset to use for this media player.
+    $element['preset'] = array(
+      '#title' => t('Preset'),
+      '#type' => 'select',
+      '#options' => $presets,
+      '#default_value' => $settings['preset']
+    );
+
+    $options = array();
+    $fields = field_info_instances($instance['entity_type'], $instance['bundle']);
+    foreach ($fields as $name => $field) {
+      $options[$name] = $field['label'];
+    }
+
+    // Set the image preview field for this player.
+    $element['preview'] = array(
+      '#title' => t('Preview Image Field'),
+      '#type' => 'select',
+      '#options' => $options,
+      '#default_value' => $settings['preview']
     );
   }
-  return $formatters;
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary
+ */
+function mediafront_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $summary = '';
+  if ($display['type'] == 'mediafront_player') {
+    $header = array('Setting', 'Value');
+    $rows = array();
+    foreach ($settings as $name => $value) {
+      $rows[] = array($name, $value);
+    }
+    $summary = theme('table', array('header' => $header, 'rows' => $rows));
+  }
+  return $summary;
 }
 
 /**
@@ -79,47 +80,32 @@ function mediafront_field_formatter_info() {
  */
 function mediafront_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
   $element = array();
-
-  // Check if the formatter involves a particular image style.
-  $matches = array();
-  if (preg_match('/__([a-z0-9_]+)/', $display['type'], $matches)) {
-    $preset = $matches[1];
+  if ($display['type'] == 'mediafront_player') {
+    $settings = $display['settings'];
+    $element[] = array(
+      '#theme' => 'mediafront_player_formatter',
+      '#entity' => $entity,
+      '#preset' => $settings['preset'],
+      '#preview' => $settings['preview'],
+      '#media' => $instance['field_name']
+    );
   }
-
-  $element[] = array(
-    '#theme' => 'mediafront_player_formatter',
-    '#entity' => $entity,
-    '#preset' => isset($preset) ? $preset : ''
-  );
-
   return $element;
-}
-
-/**
- * Implements hook_field_is_empty
- */
-function mediafront_field_is_empty($item, $field) {
-  return FALSE;
-}
-
-/**
- * Implements hook_field_prepare_view()
- */
-function mediafront_field_prepare_view($entity_type, $entities, $field, $instances, $langcode, &$items)
-{
-  // Add a bogus item to the media players.
-  foreach ($entities as $id => $entity) {
-    $items[$id][0] = array('name' => 'mediaplayer');
-  }
 }
 
 /**
  * Theme for the Media Player field.
  */
-function theme_mediafront_player_formatter( $variables ) {
-  $variables = array_shift( $variables );
+function theme_mediafront_player_formatter($variables) {
+  $variables = array_shift($variables);
   $preset = $variables['#preset'];
   $entity = $variables['#entity'];
-  return theme('mediafront_player', array('entity' => $entity, 'preset' => $preset) );
+  $media = $variables['#media'];
+  $preview = $variables['#preview'];
+  return theme('mediafront_player', array(
+    'entity' => $entity,
+    'preset' => $preset,
+    'media' => mediafront_get_media($entity, $media, $preview)
+  ));
 }
 ?>
