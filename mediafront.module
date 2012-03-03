@@ -89,7 +89,7 @@ function theme_mediafront_player_view($variables) {
 function theme_mediafront_player($variables) {
 
   // Get the correct variables.
-  $variables = !empty($variables['entity']) ? array_shift($variables) : $variables;
+  $variables = !empty($variables['element']) ? array_shift($variables) : $variables;
 
   // Get the entity and preset.
   $entity = $variables['#entity'];
