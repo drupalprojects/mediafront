@@ -306,8 +306,8 @@ function mediafront_get_playlist_from_view( $view, $args = null ) {
       $node = array('title' => $media->filename);
       mediafront_add_media($node, $media);
       if ($preview = mediafront_get_media_preview($media)) {
-        $node["mediafiles"]["images"]["thumbnail"] = $preview;
-        $node["mediafiles"]["images"]["preview"] = str_replace('square_thumbnail', 'large', $preview);
+        $node["mediafiles"]["image"]["thumbnail"] = $preview;
+        $node["mediafiles"]["image"]["preview"] = str_replace('square_thumbnail', 'large', $preview);
       }
       $playlist['nodes'][] = $node;
     }
@@ -613,25 +613,6 @@ function mediafront_is_media($mimetype, $extension) {
   return $media;
 }
 
-function mediafront_array_to_object($array = array()) {
-  $object = new stdClass();
-  foreach ($array as $akey => $aval) {
-    $object->{$akey} = $aval;
-  }
-  return $object;
-}
-
-/**
- * Determine the file path for the media file.
- */
-function mediafront_get_media_filepath( $file ) {
-  return (isset($file->url) ? $file->url :
-    (isset($file->path) ? $file->path :
-    (!isset($file->filename) ? '' :
-    (preg_match('/^http(s)?\:\/\//', $file->uri) ? $file->uri :
-    file_create_url($file->uri) ))));
-}
-
 /**
  * Given a Drupal file object, this function returns the media player file object.
  *
@@ -639,35 +620,7 @@ function mediafront_get_media_filepath( $file ) {
  * @return object - The media player file object, if it is valid.
  */
 function mediafront_get_media_file($file) {
-  $media_file = new stdClass();
-
-  $media_file->path = mediafront_get_media_filepath($file);
-  $media_file->extension = mediafront_get_extension($media_file->path);
-
-  if (isset($file->class) && isset($file->mediaType)) {
-    $media_file->class = $file->class;
-    $media_file->mediaType = $file->mediaType;
-  }
-  else if(mediafront_is_image($file->filemime, $media_file->extension)) {
-    $media_file->class = "images";
-    $media_file->mediaType = "image";
-  }
-  else if(mediafront_is_media( $file->filemime, $media_file->extension )) {
-    $media_file->class = "media";
-    $media_file->mediaType = (isset($file->mediaType) && $file->mediaType) ? $file->mediaType : "media";
-  }
-  else {
-    $media_file->class = "";
-    $media_file->mediaType = "";
-  }
-
-  $media_file->filemime = isset($file->filemime) ? $file->filemime : '';
-  $media_file->player = isset($file->player) ? $file->player : '';
-  $media_file->bytesTotal = isset($file->filesize) ? $file->filesize : 0;
-  $media_file->duration = isset($file->duration) ? $file->duration : 0;
-  $media_file->width = isset($file->width) ? $file->width : 0;
-  $media_file->height = isset($file->height) ? $file->height : 0;
-  return $media_file;
+  return new MediaFile($file);
 }
 
 /**
@@ -679,7 +632,7 @@ function mediafront_add_media( &$additions, $file ) {
   // Only continue if the file exists.
   if( $file ) {
     // Convert the file to an object.
-    $file = is_array($file) ? mediafront_array_to_object($file) : $file;
+    $file = is_array($file) ? (object)$file : $file;
 
     // If the file exists.
     if( $media_file = mediafront_get_media_file($file) ) {
@@ -867,16 +820,28 @@ function mediafront_get_media($entity, $media, $preview) {
   if (!mediafront_add_field_values($node, $entity, $media)) {
 
     // If none was added, then just add the raw value.
-    $items = field_get_items('node', $entity, $media);
-    $node["mediafiles"]["media"]["media"] = $items[0]['value'];
+    if ($items = field_get_items('node', $entity, $media)) {
+      $node["mediafiles"]["media"]["media"] = mediafront_get_media_file(array(
+        'path' => $items[0]['value']
+      ));
+    }
   }
 
   // Add the preview field values.
   if (!mediafront_add_field_values($node, $entity, $preview)) {
 
     // If none was added, then just add the raw value.
-    $items = field_get_items('node', $entity, $preview);
-    $node["mediafiles"]["images"]["image"] = $items[0]['value'];
+    if ($items = field_get_items('node', $entity, $preview)) {
+      $node["mediafiles"]["image"]["image"] = mediafront_get_media_file(array(
+        'path' => $items[0]['value']
+      ));
+    }
+  }
+
+  // Add the node ID and title if media exists.
+  if ($node) {
+    $node['nid'] = $entity->nid;
+    $node['title'] = $entity->title;
   }
 
   // Return the node object.
@@ -901,7 +866,7 @@ function mediafront_playlist_node( $node ) {
   // If they provide the field_mediafront_image field.
   if( $field = _mediafront_get_field( $node, 'field_mediafront_image', 0 ) ) {
     $media_added = true;
-    $additions["mediafiles"]["images"]["image"] = $field['value'];
+    $additions["mediafiles"]["image"]["image"] = $field['value'];
   }
 
   // Use the media module.
@@ -971,7 +936,7 @@ function mediafront_playlist_node( $node ) {
             // If this is a preview image.
             if( $media_field->node_preset && ($media_field->node_preset != 'mediafront_original') ) {
               $file['path'] = image_style_url( $media_field->node_preset, $file['uri'] );
-              $file['class'] = 'images';
+              $file['class'] = 'image';
               $file['mediaType'] = 'preview';
               $media_added |= mediafront_add_media( $additions, $file );
             }
@@ -979,7 +944,7 @@ function mediafront_playlist_node( $node ) {
             // This is a thumbnail image.
             if( $media_field->thumb_preset && ($media_field->thumb_preset != 'mediafront_original') ) {
               $file['path'] = image_style_url( $media_field->thumb_preset, $file['uri'] );
-              $file['class'] = 'images';
+              $file['class'] = 'image';
               $file['mediaType'] = 'thumbnail';
               $media_added |= mediafront_add_media( $additions, $file );
             }
@@ -993,9 +958,9 @@ function mediafront_playlist_node( $node ) {
   $additions['title'] = $node->title;
 
   // If no images exist, then add the preview...
-  if ($preview && (!isset($additions["mediafiles"]) || !isset($additions["mediafiles"]["images"]))) {
-    $additions["mediafiles"]["images"]["thumbnail"] = $preview;
-    $additions["mediafiles"]["images"]["preview"] = str_replace('square_thumbnail', 'large', $preview);
+  if ($preview && (!isset($additions["mediafiles"]) || !isset($additions["mediafiles"]["image"]))) {
+    $additions["mediafiles"]["image"]["thumbnail"] = $preview;
+    $additions["mediafiles"]["image"]["preview"] = str_replace('square_thumbnail', 'large', $preview);
   }
 
   // Now add the CCK fields.

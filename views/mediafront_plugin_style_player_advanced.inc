@@ -96,7 +96,7 @@ class mediafront_plugin_style_player_advanced extends views_plugin_style {
         if ($this->options['mediafront_image_field']) {
           $image_url = $this->getFieldRawUrl($index, $this->options['mediafront_image_field']);
           if ($image_url) {
-            $playlist_node['mediafiles']['images'] = array(
+            $playlist_node['mediafiles']['image'] = array(
               'image' => (object)array(
                 'path' => $image_url,
               ),

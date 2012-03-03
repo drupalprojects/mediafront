@@ -148,7 +148,7 @@ class mediafront_handler_field_player extends views_handler_field {
     $node = new stdClass();
     $node->mediafiles = array(
       'media' => array(),
-      'images' => array('image' => '')
+      'image' => array('image' => '')
     );
 
     foreach( array_filter($options) as $type => $value ) {
@@ -168,7 +168,7 @@ class mediafront_handler_field_player extends views_handler_field {
         }
 
         if( $type == 'preview' ) {
-          $node->mediafiles['images']['image'] = $value;
+          $node->mediafiles['image']['image'] = $value;
         }
         else {
           $node->mediafiles['media'][$type] = $value;

@@ -87,7 +87,7 @@ function theme_minplayer($variables) {
 
   // Set the poster image.
   $imgsrc = '';
-  if ($images = minplayer_get_sources('images', $params)) {
+  if ($images = minplayer_get_sources('image', $params)) {
     $imgsrc = isset($images['preview']) ? $images['preview'] : $images['image'];
     $imgsrc = is_string($imgsrc) ? $imgsrc : $imgsrc->path;
     $attributes['poster'] = $imgsrc;
