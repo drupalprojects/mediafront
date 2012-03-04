@@ -142,7 +142,12 @@ function minplayer_get_player_params() {
 }
 
 function minplayer_get_templates() {
-  return mediafront_get_directories('html5_media','player/templates');
+  $info = html5_media_get_player_info();
+  $templates = array();
+  foreach ($info['templates'] as $name => $template) {
+    $templates[$name] = $name;
+  }
+  return $templates;
 }
 
 /**
