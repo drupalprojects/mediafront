@@ -43,39 +43,16 @@ function mediafront_menu() {
  * Implements hook_theme().
  */
 function mediafront_theme() {
-
   $theme = array();
-
-  // Create a basic theme function for showing the media player.
-  $theme['mediafront_player_view'] = array(
-    'render element' => 'element',
-    'arguments' => array('view' => NULL, 'preset' => NULL)
-  );
-
   $theme['mediafront_player'] = array(
     'render element' => 'element',
     'arguments' => array('element' => NULL)
   );
-
   $theme['mediafront_field'] = array(
     'render element' => 'element',
     'arguments' => array('entity' => NULL, 'preset' => NULL)
   );
-
   return $theme;
-}
-
-/**
- * Implement the theme for the media player for the Views module.
- */
-function theme_mediafront_player_view($variables) {
-  $view = $variables['view'];
-  $preset = $variables['preset'];
-  $params['playlistObj'] = mediafront_get_playlist_from_view( $view );
-  $params['playlist'] = $view->name;
-  $params['args'] = $view->args;
-  $params['pageLimit'] = method_exists($view, 'get_items_per_page') ? $view->get_items_per_page() : $view->pager['items_per_page'];
-  return mediafront_get_player($preset, $params);
 }
 
 /**
@@ -274,36 +251,6 @@ function mediafront_get_playlist( $playlist, $limit = 10, $page = 0, $args = arr
 function mediafront_get_playlist_from_view( $view, $args = null ) {
   // Create our playlist array.
   $playlist = array();
-
-  /**
-   * TO-DO: REFACTOR THIS!
-   *
-  $playlist['nodes'] = array();
-  $playlist['name'] = $view->name;
-  $playlist['total_rows'] = $view->total_rows ? $view->total_rows : ($view->query->pager ? $view->query->pager->get_total_items() : 0);
-
-  // Iterate through our result and get our player nodes.
-  if ($view->base_table == 'node') {
-    foreach( $view->result as $node ) {
-      if( $node = mediafront_get_node($node->nid, $args) ) {
-        $playlist['nodes'][] = $node;
-      }
-    }
-  }
-  else if ($view->base_table == 'file_managed') {
-    foreach ($view->result as $file) {
-      $media = file_load($file->fid);
-      $node = array('title' => $media->filename);
-      mediafront_add_media($node, $media);
-      if ($preview = mediafront_get_media_preview($media)) {
-        $node["mediafiles"]["image"]["thumbnail"] = $preview;
-        $node["mediafiles"]["image"]["preview"] = str_replace('square_thumbnail', 'large', $preview);
-      }
-      $playlist['nodes'][] = $node;
-    }
-  }
-   *
-   */
 
   // Return the playlist.
   return $playlist;
