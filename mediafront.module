@@ -568,7 +568,7 @@ function mediafront_get_player() {
   // If they pass in a string, then this is a preset.
   // get the preset values.
   if( gettype($params) == 'string' ) {
-    $preset = mediafront_get_preset( $params );
+    $preset = mediafront_get_preset($params, (is_array($params) && !empty($params['admin'])));
     $params = isset($args[1]) ? $preset['settings'] ? array_merge( $preset['settings'], $args[1] ) : $args[1] : $preset['settings'];
     $params['preset'] = $preset['name'];
     $params['player'] = $preset['player'];

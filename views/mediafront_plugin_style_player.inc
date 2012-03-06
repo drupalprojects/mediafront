@@ -107,7 +107,7 @@ class mediafront_plugin_style_player extends views_plugin_style {
       }
     }
 
-    $params['playlistObj']['total_rows'] = count($params['playlistObj']['nodes']);
+    $params['playlistObj']['total_rows'] = $this->view->query->pager->get_total_items();
 
     // Now render the media player for this view.
     return mediafront_get_player($this->options['mediafront_preset'], $params);

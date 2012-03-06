@@ -134,7 +134,7 @@ function mediafront_preset_form($form, &$form_state, $preset) {
 
    // Set up the parameters for the player.
    $preset = (array)$preset;
-   $params = array( 'admin' => true, 'player' => $preset['player'], 'preset' => $preset['name'] );
+   $params = array('admin' => true, 'player' => $preset['player'], 'preset' => $preset['name']);
    $params = $preset['settings'] ? array_merge( $preset['settings'], $params ) : $params;
 
    $form['preview']['player'] = array(
@@ -574,37 +574,49 @@ function mediafront_preset_get_presets() {
  *
  * @param <type> $preset_name
  */
-function mediafront_preset_load( $preset_name ) {
-  return mediafront_get_preset( $preset_name );
+function mediafront_preset_load($preset_name) {
+  return mediafront_get_preset($preset_name);
 }
 
 /**
  * Get's the preset.
  */
-function mediafront_get_preset( $preset_name ) {
-  // Get the preset from the database.
-  $preset = db_select('mediafront_preset', 'p')
-    ->fields('p')
-    ->condition('p.name', $preset_name)
-    ->execute()
-    ->fetchAssoc();
-  if( $preset ) {
-    $preset['settings'] = $preset['settings'] ? unserialize( $preset['settings'] ) : array();
-    $preset['connect'] = $preset['connect'] ? unserialize( $preset['connect'] ) : array();
+function mediafront_get_preset($preset_name, $reset = FALSE) {
+
+  // Get the preset from cache.
+  $cache = cache_get('mediafront_preset_' . $preset_name);
+  if (!$reset && $cache) {
+    return $cache->data;
   }
   else {
-    // Get all of the default presets.
-    $default_presets = mediafront_preset_get_default_presets();
 
-    // Check to see if this preset exists.
-    if (isset($default_presets[$preset_name])) {
-      // Make this our preset
-      $preset = $default_presets[$preset_name];
+    // Get the preset from the database.
+    $preset = db_select('mediafront_preset', 'p')
+      ->fields('p')
+      ->condition('p.name', $preset_name)
+      ->execute()
+      ->fetchAssoc();
+    if( $preset ) {
+      $preset['settings'] = $preset['settings'] ? unserialize( $preset['settings'] ) : array();
+      $preset['connect'] = $preset['connect'] ? unserialize( $preset['connect'] ) : array();
     }
-  }
+    else {
+      // Get all of the default presets.
+      $default_presets = mediafront_preset_get_default_presets();
 
-  // Return the preset.
-  return $preset;
+      // Check to see if this preset exists.
+      if (isset($default_presets[$preset_name])) {
+        // Make this our preset
+        $preset = $default_presets[$preset_name];
+      }
+    }
+
+    // Now cache it.
+    cache_set('mediafront_preset_' . $preset_name, $preset);
+
+    // Return the preset.
+    return $preset;
+  }
 }
 
 /**
