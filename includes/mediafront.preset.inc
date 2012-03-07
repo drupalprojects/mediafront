@@ -517,6 +517,9 @@ function mediafront_preset_save( $preset ) {
   // Save or update a preset.
   drupal_write_record( 'mediafront_preset', $preset, $pid );
 
+  // Save this preset in cache.
+  cache_set('mediafront_preset_' . $preset['name'], $preset);
+
   // Tell the player about this preset save.
   $player_save = $preset['player'] . '_mediafront_preset_save';
   if( function_exists( $player_save ) ) {
