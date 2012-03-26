@@ -135,7 +135,7 @@ function mediafront_preset_form($form, &$form_state, $preset) {
    // Set up the parameters for the player.
    $preset = (array)$preset;
    $params = array('admin' => true, 'player' => $preset['player'], 'preset' => $preset['name']);
-   $params = $preset['settings'] ? array_merge( $preset['settings'], $params ) : $params;
+   $params = !empty($preset['settings']) ? array_merge($preset['settings'], $params) : $params;
 
    $form['preview']['player'] = array(
       '#type' => 'item',
@@ -143,7 +143,7 @@ function mediafront_preset_form($form, &$form_state, $preset) {
    );
 
    // Get all of the settings for this player.
-   $preset['settings'] = mediafront_get_settings( $preset['player'], $params );
+   $preset['settings'] = mediafront_get_settings($preset['player'], $params);
 
    $form['settings'] = array(
       '#type' => 'fieldset',
@@ -194,7 +194,7 @@ function mediafront_preset_form($form, &$form_state, $preset) {
    );
 
    // Now add the player settings form to this fieldset.
-   $form['settings']['player_settings'] = array_merge( mediafront_player_settings_form($preset), $form['settings']['player_settings'] );
+   $form['settings']['player_settings'] = array_merge(mediafront_player_settings_form($preset), $form['settings']['player_settings']);
 
    // Add the player to player settings.
    $form['settings']['connect'] = array(
@@ -293,7 +293,7 @@ function mediafront_preset_submit($form, &$form_state) {
   );
 
   // Now set the player settings that are only different from the defaults.
-  $preset['settings'] = mediafront_get_settings( $preset['player'], mediafront_preset_array_flatten($form_state['values']['player_settings']) );
+  $preset['settings'] = mediafront_get_settings($preset['player'], mediafront_preset_array_flatten($form_state['values']['player_settings']));
 
   // Save this preset.
   mediafront_preset_save( $preset );
@@ -343,7 +343,7 @@ function mediafront_preset_create_form($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Preset Name'),
     '#maxlength' => MEDIAFRONT_PRESET_MAX_LENGTH,
-    '#description' => t('Spaces are NOT allowed; punctuation is not allowed except for periods, hyphens, apostrophes, and underscores.'),
+    '#description' => t('Spaces are NOT allowed; punctuation is not allowed except for periods, apostrophes, and underscores.'),
     '#required' => TRUE,
     '#weight' => -10,
   );

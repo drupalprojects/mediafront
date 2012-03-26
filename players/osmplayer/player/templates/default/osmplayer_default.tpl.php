@@ -1,30 +1,27 @@
-<?php
-  $hasPlayist = (!$params['disablePlaylist'] && !$params['controllerOnly']);
-  $hasControl = ($params['controllerOnly'] || ($params['showController'] && !$params['playlistOnly']));
-  $hasMenu = (!$params['playlistOnly'] && !$params['controllerOnly']);
-  $hasTitleBar = ($params['showTitleBar'] && !$params['controllerOnly']);
-
-  $showPlaylist = $hasPlayist && $params['showPlaylist'] ? $params['prefix'] . 'mediashowplaylist ' : '';
-  $showTitleBar = $hasTitleBar ? $params['prefix'] . 'mediashowtitle ' : '';
-  $showScrollBar = !$params['showScrollbar'] ? 'mediahidescroll ' : '';
-  $showVoter = $params['showNodeVoter'] ? $params['prefix'] . 'mediashowvoter ' : '';
-  $playlistHorizontal = !$params['vertical'] ? $params['prefix'] . 'playlisthorizontal ' : '';
-  $playlistOnly = $params['playlistOnly'] ? $params['prefix'] . 'playlistonly ' : '';
-  $controllerOnly = $params['controllerOnly'] ? $params['prefix'] . 'controlleronly ' : '';
-
-  $showCSS = $showPlaylist . $showTitleBar . $showScrollBar . $showVoter . $playlistHorizontal . $playlistOnly . $controllerOnly;
-?>
-<?php if( !$params['playlistOnly'] && !$params['controllerOnly'] ) { ?>
-<div id="<?php print $params['prefix']; ?>mediaplayerloading" style="<?php print $width; ?><?php print $height; ?>">
-  <img src="<?php print $params['playerPath']; ?>templates/default/images/busy.gif" />
-</div>
-<?php } ?>
-<div id="<?php print $params['id']; ?>" class="<?php print $showCSS ?><?php print $params['prefix']; ?>mediaplayerdialog <?php print $params['prefix']; ?>ui-dialog <?php print $params['prefix']; ?>ui-widget <?php print $params['prefix']; ?>ui-widget-content <?php print $params['prefix']; ?>ui-corner-all" style="<?php print $width; ?><?php print $height; ?>">
-  <?php if ($hasTitleBar) { print $templates['titlebar']; } ?>
-  <div id="<?php print $params['prefix']; ?>mediaplayer" class="<?php print $params['prefix']; ?>ui-helper-clearfix">
-    <?php if ($hasMenu) { print $templates['menu']; } ?>
-    <?php if (!$params['playlistOnly']) { print $templates['node']; } ?>
-    <?php if ($hasControl) { print $templates['controlBar']; } ?>
+<div id="<?php print $params['id']; ?>" class="osmplayer-default">
+  <?php print $minplayer; ?>
+  <div class="osmplayer-default-playlist">
+    <div class="osmplayer-default-hide-show-playlist ui-state-default">
+      <span class="ui-icon"></span>
+    </div>
+    <div class="osmplayer-default-playlist-scroll ui-widget-content">
+      <div class="osmplayer-default-playlist-scrollbar"></div>
+      <div class="minplayer-default-loader-wrapper">
+        <div class="minplayer-default-loader"></div>
+      </div>
+      <div class="osmplayer-default-playlist-list"></div>
+    </div>
+    <div class="osmplayer-default-playlist-pager ui-widget-header">
+      <div class="osmplayer-default-playlist-pager-left">
+        <a href="#" class="osmplayer-default-playlist-pager-link osmplayer-default-playlist-pager-prevpage minplayer-default-button ui-state-default ui-corner-all">
+          <span class="ui-icon ui-icon-circle-triangle-w"></span>
+        </a>
+      </div>
+      <div class="osmplayer-default-playlist-pager-right">
+        <a href="#" class="osmplayer-default-playlist-pager-link osmplayer-default-playlist-pager-nextpage minplayer-default-button ui-state-default ui-corner-all">
+          <span class="ui-icon ui-icon-circle-triangle-e"></span>
+        </a>
+      </div>
+    </div>
   </div>
-  <?php if ($hasPlayist) { print $templates['playlist']; } ?>
 </div>
