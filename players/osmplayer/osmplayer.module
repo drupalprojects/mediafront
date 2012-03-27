@@ -191,8 +191,6 @@ function osmplayer_get_player_settings() {
     'theme' => 'dark-hive',
     'template' => 'default',
     'showWhenEmpty' => TRUE,
-    'disablePlaylist' => FALSE,
-    'playlistOnly' => FALSE,
     'showController' => TRUE,
     'controllerOnly' => FALSE,
   );
@@ -224,7 +222,9 @@ function osmplayer_get_player_params() {
     'logo' => '/' . osmplayer_get_path() . '/logo.png',
     'link' => 'http://www.mediafront.org',
     'width' => '100%',
-    'height' => '450px'
+    'height' => '450px',
+    'playlistOnly' => FALSE,
+    'disablePlaylist' => FALSE
   );
 }
 
@@ -360,7 +360,7 @@ function osmplayer_player_settings_form($preset) {
   $form['playlist_settings']['displaySettings']['disablePlaylist'] = array(
     '#type' => 'checkbox',
     '#title' => t('Disable Playlist'),
-    '#description' => t('Will completely remove the playlist funcitonality.'),
+    '#description' => t('Will completely remove the playlist, but still provide content within the playlist.'),
     '#default_value' => $preset['settings']['disablePlaylist']
   );
   $form['playlist_settings']['displaySettings']['showPlaylist'] = array(
