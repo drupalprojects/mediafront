@@ -16,7 +16,7 @@ function osmplayer_get_player($params) {
   // If they provide the playlist object, encode it as JSON.
   if (isset($params['playlistObj']) && $params['playlistObj']) {
     $showPlayer |= ( $params['playlistObj']['total_rows'] > 0);
-    $params['playlist'] = drupal_json_encode($params['playlistObj']);
+    $params['playlist'] = $params['playlistObj'];
   }
   else {
     $showPlayer |= isset($params['playlist']) && $params['playlist'];
@@ -25,7 +25,7 @@ function osmplayer_get_player($params) {
   // If they provide the node object, encode it as JSON.
   if (isset($params['nodeObj']) && $params['nodeObj']) {
     $showPlayer |= isset($params['nodeObj']['mediafiles']) && (count($params['nodeObj']['mediafiles']) > 0);
-    $params['node'] = drupal_json_encode($params['nodeObj']);
+    $params['node'] = $params['nodeObj'];
   }
   else {
     $showPlayer |= isset($params['node']) && $params['node'];
@@ -615,11 +615,19 @@ function osmplayer_get_templates() {
       $path = getcwd() . '/' . $base_path . '/*';
       $mintemplates = osmplayer_get_resources($path, $base_path);
 
+      // Merge osmplayer and minplayer templates.
+      if (!empty($mintemplates[$name])) {
+        $all_templates = array_merge($mintemplates[$name]['css'], $resources['css']);
+      }
+      else {
+        $all_templates = $resources['css'];
+      }
+
       $templates = array();
       foreach ($osmtemplates as $name => $resources) {
         $templates[$name] = array(
           'path' => $resources['path'],
-          'css' => array_merge($mintemplates[$name]['css'], $resources['css']),
+          'css' => $all_templates,
           'js' => $resources['js'],
         );
       }
@@ -665,14 +673,16 @@ function template_preprocess_osmplayer(&$variables) {
   $defaults = osmplayer_get_player_params();
   foreach ($params as $key => $value) {
     if (isset($defaults[$key])) {
-      settype($value, gettype($defaults[$key]));
+      $type = gettype($defaults[$key]);
+      if ($type == 'boolean' || $type == 'integer') {
+        settype($value, $type);
+      }
       $settings[$key] = $value;
     }
   }
 
   // Encode the player parameters.
-  $player_params = json_encode($settings);
-
+  $player_params = drupal_json_encode($settings);
 
   // Add the osmplayer js.
   drupal_add_js('

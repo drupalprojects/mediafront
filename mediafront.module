@@ -180,7 +180,8 @@ function mediafront_get_playlist_json($playlist = null, $limit = null, $start = 
   $start = $start ? check_plain($start) : 0;
   $start = !empty($_GET['start-index']) ? check_plain($_GET['start-index']) : $start;
 
-  print drupal_json_encode(mediafront_get_playlist($playlist, $limit, $start));
+  // Output the playlist as JSON.
+  drupal_json_output(mediafront_get_playlist($playlist, $limit, $start));
 }
 
 /**
@@ -201,6 +202,12 @@ function mediafront_get_playlist($playlist, $limit = 10, $start = 0) {
   // Setup our view for query.
   if (method_exists($view, 'set_use_pager')) {
     $view->set_use_pager(FALSE);
+  }
+  else {
+    $view->display_handler->set_option('pager', array(
+      'type' => 'some',
+      'options' => $view->display_handler->options['pager']['options'],
+    ));
   }
 
   $view->set_items_per_page($limit);
@@ -259,14 +266,18 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
   $playlist = array();
   $playlist['nodes'] = array();
   $playlist['name'] = $view->name;
-  $playlist['endpoint'] = url($_GET['q'], array('absolute' => TRUE));
+
+  // Get the endpoint for this view.
+  $endpoint = 'mediafront_getplaylist/' . $view->name;
+  $playlist['endpoint'] = url($endpoint, array('absolute' => TRUE));
+
   $playlist['total_rows'] = $view->total_rows ? $view->total_rows : ($view->query->pager ? $view->query->pager->get_total_items() : 0);
   $playlist['total_rows'] += $start;
 
   // Iterate through each field and add the configuration.
   $fields = array();
   foreach ($view->field as $name => $field) {
-    $options = $field->options['mediafront'];
+    $options = !empty($field->options['mediafront']) ? $field->options['mediafront'] : array();
     if (!empty($options['field_type'])) {
       $fields[$options['field_type']] = array(
         'field' => $field,
