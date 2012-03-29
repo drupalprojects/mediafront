@@ -214,6 +214,7 @@ function osmplayer_get_player_params() {
     'scrollSpeed' => 20,
     'showPlaylist' => TRUE,
     'vertical' => TRUE,
+    'node' => array(),
     'playlist' => '',
     'pageLimit' => 10,
     'autoNext' => TRUE,
