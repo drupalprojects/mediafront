@@ -35,13 +35,16 @@ function mediafront_field_formatter_settings_form($field, $instance, $view_mode,
       $options[$name] = $field['label'];
     }
 
-    // Set the image preview field for this player.
-    $element['preview'] = array(
-      '#title' => t('Preview Image Field'),
-      '#type' => 'select',
-      '#options' => $options,
-      '#default_value' => $settings['preview']
-    );
+    // Only add the preview if there are options to do so.
+    if ($options) {
+      // Set the image preview field for this player.
+      $element['preview'] = array(
+        '#title' => t('Preview Image Field'),
+        '#type' => 'select',
+        '#options' => $options,
+        '#default_value' => $settings['preview']
+      );
+    }
   }
   return $element;
 }
