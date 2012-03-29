@@ -49,10 +49,6 @@ function mediafront_theme() {
     'render element' => 'element',
     'arguments' => array('element' => NULL)
   );
-  $theme['mediafront_field'] = array(
-    'render element' => 'element',
-    'arguments' => array('entity' => NULL, 'preset' => NULL)
-  );
   return $theme;
 }
 
@@ -76,20 +72,6 @@ function theme_mediafront_player($variables) {
   $params['disablePlaylist'] = true;
 
   // Return the player.
-  return mediafront_get_player($preset, $params);
-}
-
-/**
- * Implement the theme for a view field media player.
- */
-function theme_mediafront_field( $variables ) {
-  $entity = $variables['entity'];
-  $preset = $variables['preset'];
-  $params['nodeObj'] = (array)$entity;
-  if( isset($entity->nid) ) {
-    $params['node'] = $entity->nid;
-  }
-  $params['disablePlaylist'] = true;
   return mediafront_get_player($preset, $params);
 }
 
@@ -487,14 +469,18 @@ function mediafront_add_field_value(&$node, $value) {
 function mediafront_add_field_values(&$node, $entity, $field_name) {
   $added = false;
 
-  // Get the values.
-  $items = field_get_items('node', $entity, $field_name);
+  // Only add if there is a field.
+  if ($field_name) {
 
-  // Iterate through the media.
-  foreach ($items as $item) {
+    // Get the values.
+    $items = field_get_items('node', $entity, $field_name);
 
-    // Add this media to the node object.
-    $added |= mediafront_add_field_value($node, $item);
+    // Iterate through the media.
+    foreach ($items as $item) {
+
+      // Add this media to the node object.
+      $added |= mediafront_add_field_value($node, $item);
+    }
   }
 
   // Return if it was added.
@@ -516,7 +502,7 @@ function mediafront_get_media($entity, $media, $preview) {
   $node = array();
 
   // Add the media field values.
-  if (!mediafront_add_field_values($node, $entity, $media)) {
+  if ($media && !mediafront_add_field_values($node, $entity, $media)) {
 
     // If none was added, then just add the raw value.
     if ($items = field_get_items('node', $entity, $media)) {
@@ -527,7 +513,7 @@ function mediafront_get_media($entity, $media, $preview) {
   }
 
   // Add the preview field values.
-  if (!mediafront_add_field_values($node, $entity, $preview)) {
+  if ($preview && !mediafront_add_field_values($node, $entity, $preview)) {
 
     // If none was added, then just add the raw value.
     if ($items = field_get_items('node', $entity, $preview)) {
@@ -571,6 +557,7 @@ function mediafront_get_media($entity, $media, $preview) {
  *
  */
 function mediafront_get_player() {
+  $players = &drupal_static(__FUNCTION__);
   $args = func_get_args();
   $params = $args[0];
 
@@ -583,7 +570,15 @@ function mediafront_get_player() {
     $params['player'] = $preset['player'];
     $params['protocol'] = 'json';
     $params['connect'] = (isset($params['connect']) && $params['connect']) ? $params['connect'] : $preset['connect'];
-    $params['id'] = (isset($params['id']) && $params['id']) ? $params['id'] : 'mediafront_' . $preset['name'];
+    $params['id'] = 'mediafront_' . $preset['name'];
+
+    // Find a unique id for this player.
+    $i = 1;
+    $id = $params['id'];
+    while (isset($players[$id])) {
+      $id = $params['id'] . '_' . $i++;
+    }
+    $players[$id] = $params['id'] = $id;
   }
 
   if ($params && is_array($params)) {
