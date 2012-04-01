@@ -11,7 +11,23 @@
 #      directory within the tools directory.
 
 # Create the list of files
-files =   src/osmplayer.js\
+files =   minplayer/src/minplayer.compatibility.js\
+          minplayer/src/minplayer.async.js\
+          minplayer/src/minplayer.flags.js\
+          minplayer/src/minplayer.plugin.js\
+          minplayer/src/minplayer.display.js\
+          minplayer/src/minplayer.js\
+          minplayer/src/minplayer.image.js\
+          minplayer/src/minplayer.file.js\
+          minplayer/src/minplayer.playLoader.js\
+          minplayer/src/minplayer.players.base.js\
+          minplayer/src/minplayer.players.html5.js\
+          minplayer/src/minplayer.players.flash.js\
+          minplayer/src/minplayer.players.minplayer.js\
+          minplayer/src/minplayer.players.youtube.js\
+          minplayer/src/minplayer.players.vimeo.js\
+          minplayer/src/minplayer.controller.js\
+          src/osmplayer.js\
           src/osmplayer.parser.default.js\
           src/osmplayer.parser.youtube.js\
           src/osmplayer.parser.rss.js\
@@ -21,6 +37,14 @@ files =   src/osmplayer.js\
           src/osmplayer.scroll.js\
           src/osmplayer.pager.js\
           src/osmplayer.teaser.js
+
+default_template =   templates/default/js/osmplayer.playLoader.default.js\
+          templates/default/js/osmplayer.controller.default.js\
+          templates/default/js/osmplayer.playlist.default.js\
+          templates/default/js/osmplayer.teaser.default.js\
+          templates/default/js/osmplayer.scroll.default.js\
+          templates/default/js/osmplayer.pager.default.js\
+          templates/default/js/osmplayer.default.js
 
 .DEFAULT_GOAL := all
 
@@ -36,6 +60,9 @@ js: ${files}
 	@cat > bin/osmplayer.js $^
 	@echo "Generating compressed bin/osmplayer.compressed file"
 	@java -jar tools/compiler.jar --js bin/osmplayer.js --js_output_file bin/osmplayer.compressed.js
+	@cat > templates/default/osmplayer.default.tmp ${default_template}
+	@java -jar tools/compiler.jar --js templates/default/osmplayer.default.tmp --js_output_file templates/default/osmplayer.default.js
+	@rm templates/default/osmplayer.default.tmp
 
 # Create the documentation from source code.
 jsdoc: ${files}

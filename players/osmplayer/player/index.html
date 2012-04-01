@@ -8,8 +8,9 @@
     <!-- Many more themes to chose from... go to http://jqueryui.com/themeroller! -->
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/dark-hive/jquery-ui.css">
 
-    <!-- The following can be replaced by a single javascript include minplayer/bin/minplayer.compressed.js -->
-    <!--<script type="text/javascript" src="minplayer/bin/minplayer.compressed.js"></script>-->
+    <!-- The compressed osmplayer script. -->
+    <script type="text/javascript" src="bin/osmplayer.compressed.js"></script>
+    <!-- For debugging....
     <script type="text/javascript" src="minplayer/src/minplayer.compatibility.js"></script>
     <script type="text/javascript" src="minplayer/src/minplayer.flags.js"></script>
     <script type="text/javascript" src="minplayer/src/minplayer.async.js"></script>
@@ -26,9 +27,6 @@
     <script type="text/javascript" src="minplayer/src/minplayer.players.youtube.js"></script>
     <script type="text/javascript" src="minplayer/src/minplayer.players.vimeo.js"></script>
     <script type="text/javascript" src="minplayer/src/minplayer.controller.js"></script>
-
-    <!--<script type="text/javascript" src="bin/osmplayer.compressed.js"></script>-->
-    <!-- Include the OSM Player javascript files. -->
     <script type="text/javascript" src="src/osmplayer.js"></script>
     <script type="text/javascript" src="src/osmplayer.parser.default.js"></script>
     <script type="text/javascript" src="src/osmplayer.parser.youtube.js"></script>
@@ -39,17 +37,14 @@
     <script type="text/javascript" src="src/osmplayer.scroll.js"></script>
     <script type="text/javascript" src="src/osmplayer.pager.js"></script>
     <script type="text/javascript" src="src/osmplayer.teaser.js"></script>
+    -->
 
     <!-- Include the OSM Player template files. -->
     <link rel="stylesheet" href="minplayer/templates/default/css/minplayer_default.css">
     <link rel="stylesheet" href="templates/default/css/osmplayer_default.css">
-    <script type="text/javascript" src="templates/default/js/osmplayer.playLoader.default.js"></script>
-    <script type="text/javascript" src="templates/default/js/osmplayer.controller.default.js"></script>
-    <script type="text/javascript" src="templates/default/js/osmplayer.playlist.default.js"></script>
-    <script type="text/javascript" src="templates/default/js/osmplayer.teaser.default.js"></script>
-    <script type="text/javascript" src="templates/default/js/osmplayer.scroll.default.js"></script>
-    <script type="text/javascript" src="templates/default/js/osmplayer.pager.default.js"></script>
-    <script type="text/javascript" src="templates/default/js/osmplayer.default.js"></script>
+    <script type="text/javascript" src="templates/default/osmplayer.default.js"></script>
+
+    <!-- Here is how you make it come alive... -->
     <script type="text/javascript">
       $(function() {
         $("#osmplayer").osmplayer();
@@ -57,6 +52,9 @@
     </script>
   </head>
   <body>
-    <video id="osmplayer" playlist="http://gdata.youtube.com/feeds/api/videos"></video>
+    <video id="osmplayer" playlist="playlist.xml"></video>
+
+    <!-- Or you can get a feed directly from youtube like so... -->
+    <!--<video id="osmplayer" playlist="http://gdata.youtube.com/feeds/api/videos"></video>-->
   </body>
 </html>

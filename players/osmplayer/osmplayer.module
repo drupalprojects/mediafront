@@ -85,7 +85,7 @@ function osmplayer_library() {
         $path . '/bin/osmplayer.compressed.js' => array('group' => JS_LIBRARY)
       ),
       'dependencies' => array(
-        array('osmplayer', 'minplayer')
+        array('system', 'ui.slider')
       )
     ),
     'osmplayer_debug' => array(
@@ -209,7 +209,7 @@ function osmplayer_get_player_params() {
     'wmode' => 'transparent',
     'preload' => TRUE,
     'autoplay' => FALSE,
-    'autoLoad' => TRUE,
+    'autoload' => TRUE,
     'scrollMode' => 'auto',
     'scrollSpeed' => 20,
     'showPlaylist' => TRUE,
@@ -315,11 +315,11 @@ function osmplayer_player_settings_form($preset) {
     '#description' => t('If checked, the media will automatically load and play once the page loads.'),
     '#default_value' => $preset['settings']['autoplay']
   );
-  $form['media_settings']['autoLoad'] = array(
+  $form['media_settings']['autoload'] = array(
     '#type' => 'checkbox',
     '#title' => t('Auto Load'),
     '#description' => t('If checked, the media will automatically start loading once the page loads.'),
-    '#default_value' => $preset['settings']['autoLoad']
+    '#default_value' => $preset['settings']['autoload']
   );
 
   /*   * *********************** PLAYLIST SETTINGS ************************************ */
