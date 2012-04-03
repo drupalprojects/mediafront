@@ -59,13 +59,6 @@ class mediafront_plugin_style_player extends views_plugin_style {
    * Renders the media player.
    */
   function render() {
-    $output = '';
-
-    // Check for live preview.
-    if (!empty($this->view->live_preview)) {
-      return t('MediaFront views are not compatible with live preview.');
-    }
-
     // Now render the media player for this view.
     return mediafront_get_player($this->options['mediafront_preset'], array(
       'playlistObj' => mediafront_get_playlist_from_view($this->view)

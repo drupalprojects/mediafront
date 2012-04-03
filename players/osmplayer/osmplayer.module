@@ -31,8 +31,44 @@ function osmplayer_get_player($params) {
     $showPlayer |= isset($params['node']) && $params['node'];
   }
 
+  // Add the player connections.
+  osmplayer_add_plugins($params, 'playlist');
+
+  // Add the controller connectiions.
+  osmplayer_add_plugins($params, 'controller');
+
   // Show the player.
   return $showPlayer ? theme('osmplayer_' . $params['template'], array('params' => $params)) : '';
+}
+
+/**
+ * Connects two plugins.
+ *
+ * @param array $params The settings/parameters for this plugin.
+ * @param string $type The plugin type we are adding to the player.
+ */
+function osmplayer_add_plugins($params, $type) {
+
+  // Make sure we have a connection.
+  if (!empty($params['connect']['is' . $type])) {
+
+    // Add the javascript to get this plugin when ready.
+    $js = 'minplayer.get("mediafront_' . $params['preset'] . '", "' . $type . '", function(plugin) {';
+
+    // Iterate through the playlists.
+    foreach ($params['connect']['is' . $type] as $plugin) {
+
+      // Add this plugin to this player.
+      $js .= 'minplayer.get("mediafront_' . $plugin . '", "player", function(player) {
+        player.addPlugin("' . $type . '", plugin);
+      });';
+    }
+
+    $js .= '});';
+
+    // Add the javascript for this plugin.
+    drupal_add_js($js, 'inline');
+  }
 }
 
 /**
@@ -221,6 +257,7 @@ function osmplayer_get_player_params() {
     'shuffle' => FALSE,
     'loop' => FALSE,
     'logo' => '/' . osmplayer_get_path() . '/logo.png',
+    'swfplayer' => '/' . osmplayer_get_path() . '/minplayer/flash/minplayer.swf',
     'link' => 'http://www.mediafront.org',
     'width' => '100%',
     'height' => '450px',
@@ -498,7 +535,7 @@ function osmplayer_get_themes() {
         foreach (glob($dir . '/*.css') as $css) {
           $themes[$name] = array(
             'url' => $theme_path . '/' . basename($css),
-            'options' => array('type' => 'file')
+            'options' => array('type' => 'file', 'group' => CSS_DEFAULT)
           );
           break;
         }
@@ -536,7 +573,7 @@ function osmplayer_get_resources($path, $base_path) {
     $css_files = array();
     foreach (glob($dir . '/css/*.css') as $css) {
       $css_name = basename($css);
-      $css_files[$template_path . '/css/' . $css_name] = array('group' => CSS_DEFAULT);
+      $css_files[$template_path . '/css/' . $css_name] = array('group' => CSS_THEME);
     }
 
     // Add these to the resources array.
