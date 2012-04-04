@@ -6,7 +6,6 @@ define('MEDIAFRONT_DEFAULT_HEIGHT', 350);
 require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'mediafront') . '/includes/mediafront.field.inc';
 require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'mediafront') . '/includes/mediafront.filefield.inc';
 require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'mediafront') . '/includes/mediafront.preset.inc';
-require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'mediafront') . '/includes/mediafront.block.inc';
 
 /**
  * Implements hook_permission().
