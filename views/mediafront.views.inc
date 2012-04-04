@@ -95,3 +95,22 @@ function mediafront_form_views_ui_config_item_form_submit(&$form, &$form_state) 
   // Store these settings in the field handler options.
   $form_state['handler']->options['mediafront'] = $form_state['values']['options']['mediafront'];
 }
+
+/**
+ * Implements hook_views_data()
+ */
+function mediafront_views_data() {
+
+  /**
+   * Create an area handler for a media player within a view.
+   */
+  $data['views']['mediafront_player'] = array(
+    'title' => t('MediaFront Player'),
+    'help' => t('Add a media player to this view.'),
+    'area' => array(
+      'handler' => 'mediafront_handler_area_player',
+    ),
+  );
+
+  return $data;
+}
