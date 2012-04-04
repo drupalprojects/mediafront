@@ -309,6 +309,38 @@ function mediafront_preset_select_form($default, $key = 'mediafront_preset') {
 }
 
 /**
+ * Returns the mediafront field form.
+ */
+function mediafront_field_form($options) {
+
+  // Include CTools dependent
+  ctools_include('dependent');
+
+  // Get the field type for this field to map to mediafront.
+  $form['field_type'] = array(
+    '#type' => 'select',
+    '#title' => 'Field Type',
+    '#options' => array(0 => 'None', 'title' => 'Title', 'media' => 'Media', 'image' => 'Image'),
+    '#default_value' => $options['field_type']
+  );
+
+  // Select the media type for the media.
+  $form['media_type'] = mediafront_media_field_form($options['media_type']);
+  $form['media_type']['#process'] = array('ctools_dependent_process');
+  $form['media_type']['#dependency'] = array('edit-options-mediafront-field-type' => array('media'));
+
+  // Add the preview image form.
+  $form = array_merge($form, mediafront_preview_field_form($options['preview'], $options['thumbnail']));
+
+  // Add the CTools dependency on the preview and thumbnail selections.
+  $form['preview']['#process'] = array('ctools_dependent_process');
+  $form['preview']['#dependency'] = array('edit-options-mediafront-field-type' => array('image'));
+  $form['thumbnail']['#process'] = array('ctools_dependent_process');
+  $form['thumbnail']['#dependency'] = array('edit-options-mediafront-field-type' => array('image'));
+  return $form;
+}
+
+/**
  * Returns the media field form.
  *
  * @param type $default
@@ -569,11 +601,11 @@ function mediafront_get_player() {
   // get the preset values.
   if (gettype($params) == 'string') {
     $preset = mediafront_get_preset($params, (is_array($params) && !empty($params['admin'])));
-    $params = isset($args[1]) ? $preset['settings'] ? array_merge($preset['settings'], $args[1]) : $args[1] : $preset['settings'];
+    $params = isset($args[1]) ? !empty($preset['settings']) ? array_merge($preset['settings'], $args[1]) : $args[1] : $preset['settings'];
     $params['preset'] = $preset['name'];
     $params['player'] = $preset['player'];
     $params['protocol'] = 'json';
-    $params['connect'] = (isset($params['connect']) && $params['connect']) ? $params['connect'] : $preset['connect'];
+    $params['connect'] = !empty($params['connect']) ? $params['connect'] : (!empty($preset['connect']) ? $preset['connect'] : array());
     $params['id'] = 'mediafront_' . $preset['name'];
 
     // Find a unique id for this player.
