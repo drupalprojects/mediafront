@@ -25,7 +25,7 @@ function mediafront_form_field_ui_field_edit_form_alter(&$form, $form_state) {
   $instance = $form['#instance'];
 
   // Get the options for this field from the field handler.
-  $options = $instance['settings']['mediafront'];
+  $options = !empty($instance['settings']['mediafront']) ? $instance['settings']['mediafront'] : array();
 
   // Setup the mediafront settings for this field.
   $form['instance']['settings']['mediafront'] = array(
@@ -59,11 +59,11 @@ function mediafront_field_formatter_settings_summary($field, $instance, $view_mo
   $summary = '';
   if ($display['type'] == $type) {
     $header = array('Setting', 'Value');
-    $rows = array();
+    $items = array();
     foreach ($settings as $name => $value) {
-      $rows[] = array($name, $value);
+      $items[] = $name . ': ' . $value;
     }
-    $summary = theme('table', array('header' => $header, 'rows' => $rows));
+    $summary = theme('item_list', array('title' => t('Player Settings'), 'items' => $items));
   }
   return $summary;
 }
@@ -74,13 +74,36 @@ function mediafront_field_formatter_settings_summary($field, $instance, $view_mo
 function mediafront_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display, $type = 'mediafront_player') {
   $element = array();
   if ($display['type'] == $type) {
+
+    // Get the fields.
+    $entity_fields = field_info_instances($instance['entity_type'], $instance['bundle']);
+    $player_fields = array();
+    foreach ($entity_fields as $name => $entity_field) {
+      $options = !empty($entity_field['settings']['mediafront']) ? $entity_field['settings']['mediafront'] : array();
+      if ($options) {
+        $player_fields[$options['field_type']] = array(
+          'field' => $entity_field['field_name'],
+          'options' => $options
+        );
+      }
+    }
+
+    // If no media field is set, then just use this field.
+    if (empty($player_fields['media'])) {
+      $player_fields['media'] = array(
+        'field' => $instance['field_name'],
+        'options' => array(
+          'media_type' => 'media'
+        )
+      );
+    }
+
     $settings = $display['settings'];
     $element[] = array(
       '#theme' => $type,
       '#entity' => $entity,
       '#preset' => $settings['preset'],
-      '#preview_field' => $settings['preview'],
-      '#media_field' => $instance['field_name'],
+      '#fields' => $player_fields,
       '#type' => $display['type']
     );
   }

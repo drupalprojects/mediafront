@@ -61,7 +61,9 @@ function theme_mediafront_player($variables) {
   // Get the entity and preset.
   $entity = $variables['#entity'];
   $preset = $variables['#preset'];
-  $params = array('nodeObj' => mediafront_get_media($entity, $variables['#media_field'], $variables['#preview_field']));
+  $fields = $variables['#fields'];
+
+  $params = array('nodeObj' => mediafront_get_node('node', $entity, $fields));
 
   // Also set the nodeId for those who cannot just use the object.
   $params['node'] = $entity->nid;
@@ -200,44 +202,6 @@ function mediafront_get_playlist($playlist, $limit = 10, $start = 0) {
 }
 
 /**
- * Returns a media node provided a row and options.
- */
-function mediafront_get_media_node($fields, $row) {
-  $node = array();
-
-  if (isset($fields['title'])) {
-    $node['title'] = $fields['title']['field']->get_value($row);
-  }
-  if (isset($fields['image'])) {
-    $options = $fields['image']['options'];
-    $file = $fields['image']['field']->get_value($row);
-    $file = $file[0];
-    if (($options['preview'] == 'mediafront_original') || ($options['thumbnail'] == 'medifaront_original')) {
-      $media_file = new MediaFile($file);
-      $node['mediafiles']['image']['image'] = $media_file;
-    }
-    if (!empty($options['preview'])) {
-      $media_file = new MediaFile($file);
-      $media_file->path = image_style_url($options['preview'], $media_file->file->uri);
-      $node["mediafiles"]['image']['preview'] = $media_file;
-    }
-    if (!empty($options['thumbnail'])) {
-      $media_file = new MediaFile($file);
-      $media_file->path = image_style_url($options['thumbnail'], $media_file->file->uri);
-      $node["mediafiles"]['image']['thumbnail'] = $media_file;
-    }
-  }
-  if (isset($fields['media'])) {
-    $options = $fields['media']['options'];
-    $file = $fields['media']['field']->get_value($row);
-    $file = new MediaFile($file[0]);
-    $node['mediafiles']['media'][$options['media_type']] = $file;
-  }
-
-  return $node;
-}
-
-/**
  * Returns a playlist provided a view.
  */
 function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
@@ -278,7 +242,7 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
     foreach ($view->result as $row) {
 
       // Add this as a playlist node.
-      if ($node = mediafront_get_media_node($fields, $row)) {
+      if ($node = mediafront_get_node('view', $row, $fields)) {
 
         // Add this node.
         $playlist['nodes'][] = $node;
@@ -419,7 +383,7 @@ function mediafront_preview_field_form($preview_default = 'mediafront_original',
 }
 
 /**
- * Returns the image path for a media object.
+ * Returns the image path for a media object using the Media module.
  *
  * @return array
  */
@@ -443,129 +407,146 @@ function mediafront_get_media_preview($media) {
 }
 
 /**
- * Populates the node media provided a field value.
+ * Provided a node field, this returns the values.
  *
- * @param type $entity
  * @param type $value
+ * @return type
  */
-function mediafront_add_field_value(&$node, $value) {
-
-  // If this value was added.
-  $added = false;
-
-  // The media file object.
-  $media = NULL;
-
+function mediafront_get_node_field_instance_value($value) {
   // If this is a text value.
   if (!empty($value['value'])) {
-    $media = new MediaFile($value['value']);
+    return $value['value'];
   }
 
   // If this is a file.
   else if (!empty($value['fid'])) {
     if (!empty($value['data'])) {
-      $media = new MediaFile($value['data']);
-      if ($preview = mediafront_get_media_preview($media)) {
-        $node["mediafiles"]['image']['preview'] = new MediaFile($preview);
-      }
+      return $value['data'];
     }
     else if (!empty($value['filename'])) {
-      $media = new MediaFile($value);
+      return $value;
     }
     else {
-      $media = new MediaFile(file_load($value['fid']));
-      if ($preview = mediafront_get_media_preview($media)) {
-        $node["mediafiles"]['image']['preview'] = new MediaFile($preview);
-      }
+      return file_load($value['fid']);
     }
   }
-
-  // Get the translated media file.
-  if ($media && $media->class && $media->mediaType) {
-    if (($media->mediaType != "image") && isset($node["mediafiles"][$media->class][$media->mediaType])) {
-      $media = $node["mediafiles"][$media->class][$media->mediaType];
-      $files = is_array($media) ? $media : array($media);
-      array_push($files, $media);
-      $node["mediafiles"][$media->class][$media->mediaType] = $files;
-      $added = true;
-    }
-    else {
-      $node["mediafiles"][$media->class][$media->mediaType] = $media;
-      $added = true;
-    }
-  }
-
-  return $added;
 }
 
 /**
- * Populates all the field values onto a node reference.
- *
- * @param type $node
- * @param type $entity
- * @param type $field_name
+ * Returns the field values for a node entity.
  */
-function mediafront_add_field_values(&$node, $entity, $field_name) {
-  $added = false;
+function mediafront_get_node_field_value($entity, $field) {
 
-  // Only add if there is a field.
-  if ($field_name) {
+  // Get the field name.
+  $field_name = $field['field'];
 
-    // Get the values.
-    $items = field_get_items('node', $entity, $field_name);
+  // If this field isn't set in the node, then return empty string.
+  if (!isset($entity->{$field_name})) {
+    return '';
+  }
 
-    // Iterate through the media.
-    foreach ($items as $item) {
+  // Get the type of this field.
+  $type = gettype($entity->{$field_name});
 
-      // Add this media to the node object.
-      $added |= mediafront_add_field_value($node, $item);
+  // If it isn't an object or an array, then just return the value.
+  if ($type != 'array') {
+    return $entity->{$field_name};
+  }
+
+  // Otherwise, we can assume it is a field.
+  $items = field_get_items('node', $entity, $field_name);
+  foreach ($items as $item) {
+    if ($value = mediafront_get_node_field_instance_value($item)) {
+      return $value;
     }
   }
 
-  // Return if it was added.
-  return $added;
+  return '';
 }
 
 /**
- * Provided an entity, media field, and preview field, this retrieves the
- * mediafiles.
- *
- * @param {object} entity The entity to search.
- * @param {array} media The media field name.
- * @param {array} preview The preview field name.
- * @return {array} The media node object.
+ * Returns the field values for a view entry.
  */
-function mediafront_get_media($entity, $media, $preview) {
+function mediafront_get_view_field_value($row, $field) {
+  $value = $field['field']->get_value($row);
+  return (is_array($value) && !empty($value[0])) ? $value[0] : $value;
+}
+
+/**
+ * Returns the field values for a media.
+ */
+function mediafront_get_field_value($type, $entity, $field) {
+  $func = 'mediafront_get_' . $type . '_field_value';
+  return $func($entity, $field);
+}
+
+/**
+ * Provided a type, entity, and fields; this creaets a player node.
+ *
+ * @param string $type The type of object we are dealing with.
+ * @param object $entity The entity to search.
+ * @param array $fields An array of fields to include in the player.
+ */
+function mediafront_get_node($type, $entity, $fields) {
 
   // Create our node object.
   $node = array();
 
-  // Add the media field values.
-  if ($media && !mediafront_add_field_values($node, $entity, $media)) {
+  // Iterate through all of our fields.
+  foreach ($fields as $name => $field) {
 
-    // If none was added, then just add the raw value.
-    if ($items = field_get_items('node', $entity, $media)) {
-      $node["mediafiles"]["media"]["media"] = new MediaFile(array(
-        'path' => $items[0]['value']
-      ));
+    // Get the options.
+    $options = $field['options'];
+
+    // Get the value for this field.
+    if ($value = mediafront_get_field_value($type, $entity, $field)) {
+
+      // If this is a media field.
+      if ($name == 'media') {
+        $node['mediafiles']['media'][$options['media_type']] = new MediaFile($value);
+      }
+
+      // If this is an image field.
+      else if ($name == 'image') {
+
+        // If we just want the original image...
+        if (($options['preview'] == 'mediafront_original') || ($options['thumbnail'] == 'medifaront_original')) {
+          $file = new MediaFile($value);
+          $node['mediafiles']['image']['image'] = $file;
+        }
+
+        // If we selected a preview style.
+        if (!empty($options['preview'])) {
+          $file = new MediaFile($value);
+          $file->path = image_style_url($options['preview'], $file->file->uri);
+          $node["mediafiles"]['image']['preview'] = $file;
+        }
+
+        // If we selected a thumbnail style.
+        if (!empty($options['thumbnail'])) {
+          $file = new MediaFile($value);
+          $file->path = image_style_url($options['thumbnail'], $file->file->uri);
+          $node["mediafiles"]['image']['thumbnail'] = $file;
+        }
+      }
+      else {
+
+        // All other fields are added directly to the node.
+        $node[$name] = $value;
+      }
     }
   }
 
-  // Add the preview field values.
-  if ($preview && !mediafront_add_field_values($node, $entity, $preview)) {
-
-    // If none was added, then just add the raw value.
-    if ($items = field_get_items('node', $entity, $preview)) {
-      $node["mediafiles"]["image"]["image"] = new MediaFile(array(
-        'path' => $items[0]['value']
-      ));
-    }
-  }
-
-  // Add the node ID and title if media exists.
-  if ($node) {
-    $node['nid'] = $entity->nid;
+  // Always include the node title.
+  if ($type == 'node') {
     $node['title'] = $entity->title;
+  }
+
+  // If we have media, but not preview, see if the media module can help us out...
+  if (!empty($node['mediafiles']['media']) && empty($node['mediafiles']['image'])) {
+    if ($image = mediafront_get_media_preview($node['mediafiles']['media'])) {
+      $node['mediafiles']['image']['image'] = $image;
+    }
   }
 
   // Return the node object.
