@@ -60,10 +60,9 @@ function theme_mediafront_player($variables) {
 
   // Get the entity and preset.
   $entity = $variables['#entity'];
-  $preset = $variables['#preset'];
-  $fields = $variables['#fields'];
 
-  $params = array('nodeObj' => mediafront_get_node('node', $entity, $fields));
+  // Add the nodeObj to the media player.
+  $params = array('nodeObj' => mediafront_get_node('node', $entity, $variables['#fields']));
 
   // Also set the nodeId for those who cannot just use the object.
   $params['node'] = $entity->nid;
@@ -72,7 +71,7 @@ function theme_mediafront_player($variables) {
   $params['disablePlaylist'] = true;
 
   // Return the player.
-  return mediafront_get_player($preset, $params);
+  return mediafront_get_player($variables['#preset'], $params);
 }
 
 /**

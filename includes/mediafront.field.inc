@@ -80,7 +80,7 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
     $player_fields = array();
     foreach ($entity_fields as $name => $entity_field) {
       $options = !empty($entity_field['settings']['mediafront']) ? $entity_field['settings']['mediafront'] : array();
-      if ($options) {
+      if (!empty($options['field_type'])) {
         $player_fields[$options['field_type']] = array(
           'field' => $entity_field['field_name'],
           'options' => $options
