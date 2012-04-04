@@ -7,7 +7,6 @@ files[] = mediafront.install
 files[] = mediafront.admin.inc
 files[] = MediaFile.php
 files[] = includes/mediafront.features.inc
-files[] = includes/mediafront.filefield.inc
 files[] = includes/mediafront.field.inc
 files[] = includes/mediafront.preset.inc
 files[] = views/mediafront.views.inc

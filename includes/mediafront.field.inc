@@ -10,11 +10,31 @@ function mediafront_field_formatter_info() {
       'description' => t('Play this file using a MediaFront Preset.'),
       'field types' => array('file', 'text'),
       'settings' => array(
-        'preset' => '',
-        'preview' => ''
+        'preset' => ''
       )
     )
   );
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter().
+ */
+function mediafront_form_field_ui_field_edit_form_alter(&$form, $form_state) {
+
+  // Get this field instance.
+  $instance = $form['#instance'];
+
+  // Get the options for this field from the field handler.
+  $options = $instance['settings']['mediafront'];
+
+  // Setup the mediafront settings for this field.
+  $form['instance']['settings']['mediafront'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'MediaFront Settings'
+  );
+
+  // Add the mediafront field select form.
+  $form['instance']['settings']['mediafront'] = array_merge($form['instance']['settings']['mediafront'], mediafront_field_form($options, 'edit-instance-settings-mediafront-'));
 }
 
 /**
@@ -25,26 +45,7 @@ function mediafront_field_formatter_settings_form($field, $instance, $view_mode,
   $settings = $display['settings'];
   $element = array();
   if ($display['type'] == $type) {
-
-    // Add the perset selection.
     $element['preset'] = mediafront_preset_select_form($settings, 'preset');
-
-    $options = array();
-    $fields = field_info_instances($instance['entity_type'], $instance['bundle']);
-    foreach ($fields as $name => $field) {
-      $options[$name] = $field['label'];
-    }
-
-    // Only add the preview if there are options to do so.
-    if ($options) {
-      // Set the image preview field for this player.
-      $element['preview'] = array(
-        '#title' => t('Preview Image Field'),
-        '#type' => 'select',
-        '#options' => $options,
-        '#default_value' => $settings['preview']
-      );
-    }
   }
   return $element;
 }

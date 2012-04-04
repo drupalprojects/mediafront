@@ -4,7 +4,6 @@ define('MEDIAFRONT_DEFAULT_HEIGHT', 350);
 
 // Require the filefield support file.
 require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'mediafront') . '/includes/mediafront.field.inc';
-require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'mediafront') . '/includes/mediafront.filefield.inc';
 require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'mediafront') . '/includes/mediafront.preset.inc';
 
 /**
@@ -311,32 +310,36 @@ function mediafront_preset_select_form($default, $key = 'mediafront_preset') {
 /**
  * Returns the mediafront field form.
  */
-function mediafront_field_form($options) {
+function mediafront_field_form($options, $id_prefix = '') {
 
   // Include CTools dependent
   ctools_include('dependent');
 
   // Get the field type for this field to map to mediafront.
+  $type = !empty($options['field_type']) ? $options['field_type'] : 0;
   $form['field_type'] = array(
     '#type' => 'select',
     '#title' => 'Field Type',
     '#options' => array(0 => 'None', 'title' => 'Title', 'media' => 'Media', 'image' => 'Image'),
-    '#default_value' => $options['field_type']
+    '#default_value' => $type
   );
 
   // Select the media type for the media.
-  $form['media_type'] = mediafront_media_field_form($options['media_type']);
+  $media_type = !empty($options['media_type']) ? $options['media_type'] : 'media';
+  $form['media_type'] = mediafront_media_field_form($media_type);
   $form['media_type']['#process'] = array('ctools_dependent_process');
-  $form['media_type']['#dependency'] = array('edit-options-mediafront-field-type' => array('media'));
+  $form['media_type']['#dependency'] = array($id_prefix . 'field-type' => array('media'));
 
   // Add the preview image form.
-  $form = array_merge($form, mediafront_preview_field_form($options['preview'], $options['thumbnail']));
+  $preview = !empty($options['preview']) ? $options['preview'] : 0;
+  $thumb = !empty($options['thumbnail']) ? $options['thumbnail'] : 0;
+  $form = array_merge($form, mediafront_preview_field_form($preview, $thumb));
 
   // Add the CTools dependency on the preview and thumbnail selections.
   $form['preview']['#process'] = array('ctools_dependent_process');
-  $form['preview']['#dependency'] = array('edit-options-mediafront-field-type' => array('image'));
+  $form['preview']['#dependency'] = array($id_prefix . 'field-type' => array('image'));
   $form['thumbnail']['#process'] = array('ctools_dependent_process');
-  $form['thumbnail']['#dependency'] = array('edit-options-mediafront-field-type' => array('image'));
+  $form['thumbnail']['#dependency'] = array($id_prefix . 'field-type' => array('image'));
   return $form;
 }
 
