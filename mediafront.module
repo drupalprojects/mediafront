@@ -278,12 +278,21 @@ function mediafront_field_form($options, $id_prefix = '') {
   // Include CTools dependent
   ctools_include('dependent');
 
+  // Get the field types.
+  $field_types = array(
+    0 => 'None',
+    'title' => 'Title',
+    'media' => 'Media',
+    'image' => 'Image',
+    'custom' => 'Custom'
+  );
+
   // Get the field type for this field to map to mediafront.
   $type = !empty($options['field_type']) ? $options['field_type'] : 0;
   $form['field_type'] = array(
     '#type' => 'select',
     '#title' => 'Field Type',
-    '#options' => array(0 => 'None', 'title' => 'Title', 'media' => 'Media', 'image' => 'Image'),
+    '#options' => $field_types,
     '#default_value' => $type
   );
 
@@ -303,6 +312,19 @@ function mediafront_field_form($options, $id_prefix = '') {
   $form['preview']['#dependency'] = array($id_prefix . 'field-type' => array('image'));
   $form['thumbnail']['#process'] = array('ctools_dependent_process');
   $form['thumbnail']['#dependency'] = array($id_prefix . 'field-type' => array('image'));
+
+  // Add the custom data form.
+  $custom = !empty($options['custom']) ? $options['custom'] : 0;
+  $form['custom'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Field Name',
+    '#description' => 'Enter the machine name for the field you would like to bring into the media player.',
+    '#default_value' => $custom,
+    '#process' => array('ctools_dependent_process'),
+    '#dependency' => array($id_prefix . 'field-type' => array('custom'))
+  );
+
+  // Return the form.
   return $form;
 }
 
@@ -527,6 +549,18 @@ function mediafront_get_node($type, $entity, $fields) {
           $file->path = image_style_url($options['thumbnail'], $file->file->uri);
           $node["mediafiles"]['image']['thumbnail'] = $file;
         }
+      }
+
+      // If this is the title field.
+      else if ($name == 'title') {
+        $node['title'] = $value;
+      }
+
+      // If this is a custom field.
+      else if ($name == 'custom') {
+
+        // Add this field to the node values.
+        $node[$options['custom']] = $value;
       }
       else {
 

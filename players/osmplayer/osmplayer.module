@@ -196,22 +196,12 @@ function osmplayer_player_info() {
 function osmplayer_theme() {
   $templates = osmplayer_get_templates();
   $themes = array();
-  $path = osmplayer_get_path() . '/templates';
-  $minplayer_path = osmplayer_get_path() . '/minplayer/templates';
   foreach ($templates as $template => $info) {
-    $template_path = ($path . '/' . $template);
     $themes['osmplayer_' . $template] = array(
       'template' => 'osmplayer_' . $template,
       'variables' => array('params' => NULL, 'templates' => NULL),
-      'path' => $template_path,
+      'path' => $info['path'],
       'preprocess functions' => array('template_preprocess_osmplayer')
-    );
-
-    $template_path = ($minplayer_path . '/' . $template);
-    $themes['minplayer_' . $template] = array(
-      'template' => 'minplayer_' . $template,
-      'variables' => array('params' => NULL, 'templates' => NULL),
-      'path' => $template_path
     );
   }
   return $themes;
@@ -606,25 +596,16 @@ function osmplayer_get_templates() {
       $path = getcwd() . '/' . $base_path . '/*';
       $osmtemplates = osmplayer_get_resources($path, $base_path);
 
-      // Get the minplayer templates.
-      $base_path = osmplayer_get_path() . '/minplayer/templates';
+      // Get the themes player templates.
+      $base_path = path_to_theme() . '/players';
       $path = getcwd() . '/' . $base_path . '/*';
-      $mintemplates = osmplayer_get_resources($path, $base_path);
+      $osmtemplates = array_merge($osmtemplates, osmplayer_get_resources($path, $base_path));
 
       $templates = array();
       foreach ($osmtemplates as $name => $resources) {
-
-        // Merge osmplayer and minplayer templates.
-        if (!empty($mintemplates[$name])) {
-          $all_templates = array_merge($mintemplates[$name]['css'], $resources['css']);
-        }
-        else {
-          $all_templates = $resources['css'];
-        }
-
         $templates[$name] = array(
           'path' => $resources['path'],
-          'css' => $all_templates,
+          'css' => $resources['css'],
           'js' => $resources['js'],
         );
       }
@@ -688,8 +669,6 @@ function template_preprocess_osmplayer(&$variables) {
     });
   ', 'inline');
 
-  // Get the minplayer.
-  $minplayer_params = $params;
-  $minplayer_params['id'] = 'minplayer_' . $params['id'];
-  $variables['minplayer'] = theme('minplayer_' . $params['template'], array('params' => $minplayer_params));
+  // Add the template as its own variable.
+  $variables['template'] = $params['template'];
 }
