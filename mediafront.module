@@ -225,7 +225,8 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
   foreach ($view->field as $name => $field) {
     $options = !empty($field->options['mediafront']) ? $field->options['mediafront'] : array();
     if (!empty($options['field_type'])) {
-      $fields[$options['field_type']] = array(
+      $fields[$field] = array(
+        'type' => $options['field_type'],
         'field' => $field,
         'options' => $options
       );
@@ -473,10 +474,11 @@ function mediafront_get_node_field_value($entity, $field) {
   }
 
   // Otherwise, we can assume it is a field.
-  $items = field_get_items('node', $entity, $field_name);
-  foreach ($items as $item) {
-    if ($value = mediafront_get_node_field_instance_value($item)) {
-      return $value;
+  if ($items = field_get_items('node', $entity, $field_name)) {
+    foreach ($items as $item) {
+      if ($value = mediafront_get_node_field_instance_value($item)) {
+        return $value;
+      }
     }
   }
 
@@ -512,7 +514,7 @@ function mediafront_get_node($type, $entity, $fields) {
   $node = array();
 
   // Iterate through all of our fields.
-  foreach ($fields as $name => $field) {
+  foreach ($fields as $field) {
 
     // Get the options.
     $options = $field['options'];
@@ -521,12 +523,12 @@ function mediafront_get_node($type, $entity, $fields) {
     if ($value = mediafront_get_field_value($type, $entity, $field)) {
 
       // If this is a media field.
-      if ($name == 'media') {
+      if ($field['type'] == 'media') {
         $node['mediafiles']['media'][$options['media_type']] = new MediaFile($value);
       }
 
       // If this is an image field.
-      else if ($name == 'image') {
+      else if ($field['type'] == 'image') {
 
         // If we just want the original image...
         if (($options['preview'] == 'mediafront_original') || ($options['thumbnail'] == 'medifaront_original')) {
@@ -550,12 +552,12 @@ function mediafront_get_node($type, $entity, $fields) {
       }
 
       // If this is the title field.
-      else if ($name == 'title') {
+      else if ($field['type'] == 'title') {
         $node['title'] = $value;
       }
 
       // If this is a custom field.
-      else if ($name == 'custom') {
+      else if ($field['type'] == 'custom') {
 
         // Add this field to the node values.
         $node[$options['custom']] = $value;
@@ -563,7 +565,7 @@ function mediafront_get_node($type, $entity, $fields) {
       else {
 
         // All other fields are added directly to the node.
-        $node[$name] = $value;
+        $node[$field['field']] = $value;
       }
     }
   }

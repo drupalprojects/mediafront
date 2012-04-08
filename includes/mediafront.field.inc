@@ -78,10 +78,13 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
     // Get the fields.
     $entity_fields = field_info_instances($instance['entity_type'], $instance['bundle']);
     $player_fields = array();
+    $media_found = false;
     foreach ($entity_fields as $name => $entity_field) {
       $options = !empty($entity_field['settings']['mediafront']) ? $entity_field['settings']['mediafront'] : array();
       if (!empty($options['field_type'])) {
-        $player_fields[$options['field_type']] = array(
+        $media_found |= ($options['field_type'] == 'media');
+        $player_fields[$entity_field['field_name']] = array(
+          'type' => $options['field_type'],
           'field' => $entity_field['field_name'],
           'options' => $options
         );
@@ -89,8 +92,9 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
     }
 
     // If no media field is set, then just use this field.
-    if (empty($player_fields['media'])) {
-      $player_fields['media'] = array(
+    if (!$media_found) {
+      $player_fields[$instance['field_name']] = array(
+        'type' => 'media',
         'field' => $instance['field_name'],
         'options' => array(
           'media_type' => 'media'
