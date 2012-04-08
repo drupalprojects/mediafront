@@ -312,7 +312,7 @@ function mediafront_field_form($options, $id_prefix = '') {
   $form['thumbnail']['#dependency'] = array($id_prefix . 'field-type' => array('image'));
 
   // Add the custom data form.
-  $custom = !empty($options['custom']) ? $options['custom'] : 0;
+  $custom = !empty($options['custom']) ? $options['custom'] : "";
   $form['custom'] = array(
     '#type' => 'textfield',
     '#title' => 'Field Name',
