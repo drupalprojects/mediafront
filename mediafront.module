@@ -225,7 +225,7 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
   foreach ($view->field as $name => $field) {
     $options = !empty($field->options['mediafront']) ? $field->options['mediafront'] : array();
     if (!empty($options['field_type'])) {
-      $fields[$field] = array(
+      $fields[$field->field] = array(
         'type' => $options['field_type'],
         'field' => $field,
         'options' => $options
