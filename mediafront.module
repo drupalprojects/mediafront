@@ -214,13 +214,11 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
   $endpoint = 'mediafront_getplaylist/' . $view->name;
   $playlist['endpoint'] = url($endpoint, array('absolute' => TRUE));
 
-  if ($view->total_rows) {
-    $playlist['total_rows'] = $view->total_rows ? $view->total_rows : ($view->query->pager ? $view->query->pager->get_total_items() : 0);
-    $playlist['total_rows'] += $start;
-  }
-  else {
-    $playlist['total_rows'] = count($view->result);
-  }
+  // Get the total items.
+  $total = !empty($view->total_rows) ? $view->total_rows : (isset($view->query->pager) ? $view->query->pager->get_total_items() : 0);
+  $total = empty($total) ? count($view->result) : $total;
+  $total += $start;
+  $playlist['total_rows'] = $total;
 
   // Iterate through each field and add the configuration.
   $fields = array();
