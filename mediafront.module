@@ -577,7 +577,7 @@ function mediafront_get_node($type, $entity, $fields) {
 
   // If we have media, but not preview, see if the media module can help us out...
   if (!empty($node['mediafiles']['media']) && empty($node['mediafiles']['image'])) {
-    if ($image = mediafront_get_media_preview($node['mediafiles']['media'])) {
+    if ($image = mediafront_get_media_preview($node['mediafiles']['media']['media'])) {
       $node['mediafiles']['image']['image'] = $image;
     }
   }
