@@ -61,6 +61,11 @@ function theme_mediafront_player($variables) {
   // Get the entity and preset.
   $entity = $variables['#entity'];
 
+  // If no fields are provided then return nothing...
+  if (empty($variables['#fields'])) {
+    return '';
+  }
+
   // Add the nodeObj to the media player.
   $params = array('nodeObj' => mediafront_get_node('node', $entity, $variables['#fields']));
 

@@ -92,7 +92,7 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
     }
 
     // If no media field is set, then just use this field.
-    if (!$media_found) {
+    if (!$media_found && !empty($instance['field_name'])) {
       $player_fields[$instance['field_name']] = array(
         'type' => 'media',
         'field' => $instance['field_name'],
