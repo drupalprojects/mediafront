@@ -37,6 +37,41 @@ function osmplayer_get_player($params) {
   // Add the controller connectiions.
   osmplayer_add_plugins($params, 'controller');
 
+  // Add the theme css if applicable.
+  $themes = osmplayer_get_themes();
+  if (!empty($themes[$params['theme']])) {
+    $theme = $themes[$params['theme']];
+    drupal_add_css($theme['url'], $theme['options']);
+  }
+
+  // Add the library.
+  $library = 'osmplayer_' . $params['template'];
+  $library .= $params['debug'] ? '_debug' : '';
+  drupal_add_library('osmplayer', $library);
+
+  // Normalize the player parameters.
+  $settings = array();
+  $defaults = osmplayer_get_player_params();
+  foreach ($params as $key => $value) {
+    if (isset($defaults[$key])) {
+      $type = gettype($defaults[$key]);
+      if ($type == 'boolean' || $type == 'integer') {
+        settype($value, $type);
+      }
+      $settings[$key] = $value;
+    }
+  }
+
+  // Encode the player parameters.
+  $player_params = drupal_json_encode($settings);
+
+  // Add the osmplayer js.
+  drupal_add_js('
+    jQuery(function() {
+      jQuery("#' . $params['id'] . '").osmplayer(' . $player_params . ');
+    });
+  ', 'inline');
+
   // Show the player.
   return $showPlayer ? theme('osmplayer_' . $params['template'], array('params' => $params)) : '';
 }
@@ -200,8 +235,7 @@ function osmplayer_theme() {
     $themes['osmplayer_' . $template] = array(
       'template' => 'osmplayer_' . $template,
       'variables' => array('params' => NULL, 'templates' => NULL),
-      'path' => $info['path'],
-      'preprocess functions' => array('template_preprocess_osmplayer')
+      'path' => $info['path']
     );
   }
   return $themes;
@@ -617,58 +651,4 @@ function osmplayer_get_templates() {
 
   // Return the templates.
   return $templates;
-}
-
-/**
- * The template preprocess function for the osm media player.
- *
- * @param $variables - The
- * @return unknown_type
- */
-function template_preprocess_osmplayer(&$variables) {
-  global $base_url, $user;
-
-  // Get the params.
-  $params = &$variables['params'];
-
-  // Make sure we call the template_preprocess.
-  template_preprocess($variables, 'osmplayer_' . $params['template']);
-
-  // Add the theme css if applicable.
-  $themes = osmplayer_get_themes();
-  if (!empty($themes[$params['theme']])) {
-    $theme = $themes[$params['theme']];
-    drupal_add_css($theme['url'], $theme['options']);
-  }
-
-  // Add the library.
-  $library = 'osmplayer_' . $params['template'];
-  $library .= $params['debug'] ? '_debug' : '';
-  drupal_add_library('osmplayer', $library);
-
-  // Normalize the player parameters.
-  $settings = array();
-  $defaults = osmplayer_get_player_params();
-  foreach ($params as $key => $value) {
-    if (isset($defaults[$key])) {
-      $type = gettype($defaults[$key]);
-      if ($type == 'boolean' || $type == 'integer') {
-        settype($value, $type);
-      }
-      $settings[$key] = $value;
-    }
-  }
-
-  // Encode the player parameters.
-  $player_params = drupal_json_encode($settings);
-
-  // Add the osmplayer js.
-  drupal_add_js('
-    jQuery(function() {
-      jQuery("#' . $params['id'] . '").osmplayer(' . $player_params . ');
-    });
-  ', 'inline');
-
-  // Add the template as its own variable.
-  $variables['template'] = $params['template'];
 }
