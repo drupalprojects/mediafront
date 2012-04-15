@@ -113,4 +113,39 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
   }
   return $element;
 }
-?>
+
+/**
+ * Implements hook_file_formatter_info().
+ */
+function mediafront_file_formatter_info() {
+
+  // Add the mediafront file player.
+  $formatters['mediafront_file_player'] = array(
+    'label' => t('MediaFront File Player'),
+    'file types' => array('video', 'audio'),
+    'default settings' => array(
+      'preset' => ''
+    ),
+    'view callback' => 'mediafront_file_formatter_view',
+    'settings callback' => 'mediafront_file_formatter_settings',
+  );
+
+  return $formatters;
+}
+
+/**
+ * Implements hook_file_formatter_FORMATTER_settings().
+ */
+function mediafront_file_formatter_settings($form, &$form_state, $settings) {
+  $element = array();
+  $element['preset'] = mediafront_preset_select_form($settings, 'preset');
+  return $element;
+}
+
+/**
+ * Implements hook_file_formatter_FORMATTER_view().
+ */
+function mediafront_file_formatter_view($file, $display, $langcode) {
+  $element = array();
+  return $element;
+}

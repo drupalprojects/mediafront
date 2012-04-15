@@ -7,6 +7,7 @@
  * Implements hook_get_player()
  */
 function osmplayer_get_player($params) {
+
   $template = (isset($params['template']) && $params['template']) ? $params['template'] : "default";
   $showPlayer = isset($params['showWhenEmpty']) ? $params['showWhenEmpty'] : TRUE;
 
@@ -169,8 +170,8 @@ function osmplayer_library() {
         $path . '/src/osmplayer.parser.rss.js' => array('group' => JS_LIBRARY),
         $path . '/src/osmplayer.parser.asx.js' => array('group' => JS_LIBRARY),
         $path . '/src/osmplayer.parser.xspf.js' => array('group' => JS_LIBRARY),
+        $path . '/src/iscroll/src/iscroll.js' => array('group' => JS_LIBRARY),
         $path . '/src/osmplayer.playlist.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.scroll.js' => array('group' => JS_LIBRARY),
         $path . '/src/osmplayer.pager.js' => array('group' => JS_LIBRARY),
         $path . '/src/osmplayer.teaser.js' => array('group' => JS_LIBRARY),
       ),
@@ -262,6 +263,7 @@ function osmplayer_get_player_settings() {
  *  These are the parameters that the player requires...
  */
 function osmplayer_get_player_params() {
+  global $base_url;
   return array(
     'id' => 'player',
     'debug' => false,
@@ -280,7 +282,7 @@ function osmplayer_get_player_params() {
     'autoNext' => TRUE,
     'shuffle' => FALSE,
     'loop' => FALSE,
-    'logo' => '/' . osmplayer_get_path() . '/logo.png',
+    'logo' => $base_url . '/' . osmplayer_get_path() . '/logo.png',
     'swfplayer' => '/' . osmplayer_get_path() . '/minplayer/flash/minplayer.swf',
     'link' => 'http://www.mediafront.org',
     'width' => '100%',
