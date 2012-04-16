@@ -296,6 +296,7 @@ function mediafront_field_form($options, $id_prefix = '') {
   $form['field_type'] = array(
     '#type' => 'select',
     '#title' => 'Field Type',
+    '#description' => t('Select the way this field should be handled by a MediaFront player.'),
     '#options' => $field_types,
     '#default_value' => $type
   );
@@ -383,14 +384,11 @@ function mediafront_preview_field_form($preview_default = 'mediafront_original',
     $options[$name] = $style['name'];
   }
 
-  // Our description for each select.
-  $description = t('Select the Image style that you would like to use for this MediaFront display.');
-
   // Add the preview style selection.
   $form['preview'] = array(
     '#type' => 'select',
     '#title' => t('Preview Style'),
-    '#description' => $description,
+    '#description' => t('Select the Image Style to be used when this field is loaded as a preview in a MediaFront player.'),
     '#options' => $options,
     '#default_value' => $preview_default,
   );
@@ -398,8 +396,8 @@ function mediafront_preview_field_form($preview_default = 'mediafront_original',
   // Add the thumbnail style selection.
   $form['thumbnail'] = array(
     '#type' => 'select',
-    '#title' => t('Thumbnail Style'),
-    '#description' => $description,
+    '#title' => t('Playlist Style'),
+    '#description' => t('Select the Image Style to be used when this field is used as a thumbnail in a MediaFront playlist.'),
     '#options' => $options,
     '#default_value' => $thumb_default,
   );
