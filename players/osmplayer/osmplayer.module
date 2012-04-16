@@ -1,7 +1,14 @@
 <?php
-
-// Open Standard Media Player:  Provides the osmplayer functionality to the MediaFront module.
-// require_once( drupal_get_path('module', 'osmplayer') . '/player/OSMPlayer.php' );
+/**
+ * For debugging purposes only...
+function osmplayer_init() {
+  drupal_add_js('http://192.168.1.5:8080/target/target-script-min.js#anonymous', array(
+    'type' => 'external',
+    'group' => JS_LIBRARY,
+    'weight' => -1000
+  ));
+}
+ */
 
 /**
  * Implements hook_get_player()
@@ -68,7 +75,7 @@ function osmplayer_get_player($params) {
 
   // Add the osmplayer js.
   drupal_add_js('
-    jQuery(function() {
+    jQuery(document).ready(function() {
       jQuery("#' . $params['id'] . '").osmplayer(' . $player_params . ');
     });
   ', 'inline');
