@@ -587,31 +587,34 @@ function osmplayer_get_themes() {
  */
 function osmplayer_get_resources($path, $base_path) {
   $resources = array();
-  // Iterate through our templates directory.
-  foreach(glob($path, GLOB_ONLYDIR) as $dir) {
-    $name = basename($dir);
-    $template_path = $base_path . '/' . $name;
-    $resources[$name] = array(
-      'path' => $template_path,
-    );
 
-    // Now add the js files.
-    $js_files = array();
-    foreach (glob($dir . '/js/*.js') as $js) {
-      $js_name = basename($js);
-      $js_files[$template_path . '/js/' . $js_name] = array('group' => JS_LIBRARY);
+  // The files for the resources.
+  if ($dirs = glob($path, GLOB_ONLYDIR)) {
+    foreach($dirs as $dir) {
+      $name = basename($dir);
+      $template_path = $base_path . '/' . $name;
+      $resources[$name] = array(
+        'path' => $template_path,
+      );
+
+      // Now add the js files.
+      $js_files = array();
+      foreach (glob($dir . '/js/*.js') as $js) {
+        $js_name = basename($js);
+        $js_files[$template_path . '/js/' . $js_name] = array('group' => JS_LIBRARY);
+      }
+
+      // Now get the css files.
+      $css_files = array();
+      foreach (glob($dir . '/css/*.css') as $css) {
+        $css_name = basename($css);
+        $css_files[$template_path . '/css/' . $css_name] = array('group' => CSS_THEME);
+      }
+
+      // Add these to the resources array.
+      $resources[$name]['js'] = $js_files;
+      $resources[$name]['css'] = $css_files;
     }
-
-    // Now get the css files.
-    $css_files = array();
-    foreach (glob($dir . '/css/*.css') as $css) {
-      $css_name = basename($css);
-      $css_files[$template_path . '/css/' . $css_name] = array('group' => CSS_THEME);
-    }
-
-    // Add these to the resources array.
-    $resources[$name]['js'] = $js_files;
-    $resources[$name]['css'] = $css_files;
   }
   return $resources;
 }
