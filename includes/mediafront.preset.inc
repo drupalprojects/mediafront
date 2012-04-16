@@ -520,6 +520,9 @@ function mediafront_preset_save( $preset ) {
   // Save this preset in cache.
   cache_set('mediafront_preset_' . $preset['name'], $preset);
 
+  // Display a message.
+  drupal_set_message('Preset (' . $preset['name'] . ') settings have been saved.');
+
   // Tell the player about this preset save.
   $player_save = $preset['player'] . '_mediafront_preset_save';
   if( function_exists( $player_save ) ) {
