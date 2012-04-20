@@ -74,18 +74,8 @@ function osmplayer_get_player($params) {
     }
   }
 
-  // Normalize the player parameters.
-  $settings = array();
-  $defaults = osmplayer_get_player_params();
-  foreach ($params as $key => $value) {
-    if (isset($defaults[$key])) {
-      $type = gettype($defaults[$key]);
-      if ($type == 'boolean' || $type == 'integer') {
-        settype($value, $type);
-      }
-      $settings[$key] = $value;
-    }
-  }
+  // Get the player settings.
+  $settings = module_invoke_all('osmplayer_params', $params);
 
   // Encode the player parameters.
   $player_params = drupal_json_encode($settings);
@@ -266,6 +256,24 @@ function osmplayer_theme() {
     );
   }
   return $themes;
+}
+
+/**
+ * Implements hook_osmplayer_params().
+ */
+function osmplayer_osmplayer_params($params) {
+  $settings = array();
+  $defaults = osmplayer_get_player_params();
+  foreach ($params as $key => $value) {
+    if (isset($defaults[$key])) {
+      $type = gettype($defaults[$key]);
+      if ($type == 'boolean' || $type == 'integer') {
+        settype($value, $type);
+      }
+      $settings[$key] = $value;
+    }
+  }
+  return $settings;
 }
 
 /**

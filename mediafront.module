@@ -75,6 +75,9 @@ function theme_mediafront_player($variables) {
   // Nodes will never need the playlist.
   $params['disablePlaylist'] = true;
 
+  // Add the variables to the params in case we need it in other hooks.
+  $params['variables'] = $variables;
+
   // Return the player.
   return mediafront_get_player($variables['#preset'], $params);
 }
