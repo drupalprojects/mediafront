@@ -74,11 +74,8 @@ function osmplayer_get_player($params) {
     }
   }
 
-  // Get the player settings.
-  $settings = module_invoke_all('osmplayer_params', $params);
-
-  // Encode the player parameters.
-  $player_params = drupal_json_encode($settings);
+  // Get and encode the player parameters.
+  $player_params = drupal_json_encode(module_invoke_all('osmplayer_params', $params));
 
   // Add the osmplayer js.
   drupal_add_js('
