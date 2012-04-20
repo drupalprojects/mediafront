@@ -45,8 +45,11 @@ function osmplayer_get_player($params) {
   // Add the controller connectiions.
   osmplayer_add_plugins($params, 'controller');
 
-  // Add the theme css if applicable.
-  $themes = osmplayer_get_themes();
+  // Get the player information.
+  $info = osmplayer_get_info();
+
+  // Add the theme information if provided.
+  $themes = $info['themes'];
   if (!empty($themes[$params['theme']])) {
     $theme = $themes[$params['theme']];
     drupal_add_css($theme['url'], $theme['options']);
@@ -56,6 +59,18 @@ function osmplayer_get_player($params) {
   $library = 'osmplayer_' . $params['template'];
   $library .= $params['debug'] ? '_debug' : '';
   drupal_add_library('osmplayer', $library);
+
+  // Add any additional resources.
+  if (!empty($info['resources'])) {
+    foreach ($info['resources'] as $resource) {
+      foreach ($resource['js'] as $js => $data) {
+        drupal_add_js($js, $data);
+      }
+      foreach ($resource['css'] as $css => $data) {
+        drupal_add_css($css, $data);
+      }
+    }
+  }
 
   // Normalize the player parameters.
   $settings = array();
@@ -188,9 +203,11 @@ function osmplayer_library() {
     )
   );
 
+  // Get the player information.
+  $info = osmplayer_get_info();
+
   // Add all of the templates to the libraries.
-  $templates = osmplayer_get_templates();
-  foreach ($templates as $template => $info) {
+  foreach ($info['templates'] as $template => $info) {
     $libraries['osmplayer_' . $template] = array(
       'title' => 'OSM Player (' . $template . ')',
       'version' => '0.1',
@@ -237,9 +254,9 @@ function osmplayer_player_info() {
  * Implements hook_theme()
  */
 function osmplayer_theme() {
-  $templates = osmplayer_get_templates();
+  $info = osmplayer_get_info();
   $themes = array();
-  foreach ($templates as $template => $info) {
+  foreach ($info['templates'] as $template => $info) {
     $themes['osmplayer_' . $template] = array(
       'template' => 'osmplayer_' . $template,
       'variables' => array('params' => NULL, 'templates' => NULL),
@@ -304,14 +321,15 @@ function osmplayer_get_player_params() {
  */
 function osmplayer_player_settings_form($preset) {
 
+  // Get the information.
+  $info = osmplayer_get_info();
+
   // Get the player templates.
-  $templates = osmplayer_get_templates();
-  $templates = array_keys($templates);
+  $templates = array_keys($info['templates']);
   $templates = array_combine($templates, $templates);
 
   // Get the themes.
-  $themes = osmplayer_get_themes();
-  $themes = array_keys($themes);
+  $themes = array_keys($info['themes']);
   $themes = array_combine($themes, $themes);
 
   $form['presentation'] = array(
@@ -542,44 +560,88 @@ function osmplayer_player_settings_form($preset) {
 }
 
 /**
+ * Returns the player information provided by other modules.
+ * @return type
+ */
+function osmplayer_get_info() {
+
+  // Static cache the player info.
+  $player_info = &drupal_static(__FUNCTION__);
+  if (!isset($player_info)) {
+
+    // Get the information from cache...
+    $cache = cache_get('osmplayer_info');
+    if ($cache) {
+
+      // Set the player_info to the cached data.
+      $player_info = $cache->data;
+    }
+    else {
+
+      // Invoke all media_player_info and then set the cache.
+      $player_info = module_invoke_all('osmplayer_info');
+      cache_set('osmplayer_info', $player_info);
+    }
+  }
+  return $player_info;
+}
+
+/**
+ * Implementation of hook_osmplayer_player_info
+ */
+function osmplayer_osmplayer_info() {
+  return array(
+    'resources' => array(),
+    'themes' => osmplayer_get_themes(),
+    'templates' => osmplayer_get_templates()
+  );
+}
+
+/**
  * Returns the themes available to the OSM Player.
  * @return string
  */
 function osmplayer_get_themes() {
+  $themes = array();
+  $base_path = osmplayer_get_path() . '/jquery-ui';
+  $path = getcwd() . '/' . $base_path . '/*';
 
-  // Get the osmplayer themes.
-  $themes = &drupal_static(__FUNCTION__);
-  if (!isset($themes)) {
-
-    // See if we have cached themes.
-    if ($themes = cache_get(__FUNCTION__)) {
-      $themes = $themes->data;
-      return $themes;
-    }
-    else {
-      $themes = array();
-      $base_path = osmplayer_get_path() . '/jquery-ui';
-      $path = getcwd() . '/' . $base_path . '/*';
-
-      // Iterate through our templates directory.
-      foreach(glob($path, GLOB_ONLYDIR) as $dir) {
-        $name = basename($dir);
-        $theme_path = $base_path . '/' . $name;
-        foreach (glob($dir . '/*.css') as $css) {
-          $themes[$name] = array(
-            'url' => $theme_path . '/' . basename($css),
-            'options' => array('type' => 'file', 'group' => CSS_DEFAULT)
-          );
-          break;
-        }
-      }
-
-      // Cache this request.
-      cache_set(__FUNCTION__, $themes);
+  // Iterate through our templates directory.
+  foreach(glob($path, GLOB_ONLYDIR) as $dir) {
+    $name = basename($dir);
+    $theme_path = $base_path . '/' . $name;
+    foreach (glob($dir . '/*.css') as $css) {
+      $themes[$name] = array(
+        'url' => $theme_path . '/' . basename($css),
+        'options' => array('type' => 'file', 'group' => CSS_DEFAULT)
+      );
+      break;
     }
   }
-
   return $themes;
+}
+
+/**
+ * Returns all of the osmplayer templates.
+ *
+ * @return string
+ */
+function osmplayer_get_templates() {
+
+  // Get the osmplayer templates.
+  $templates = array();
+  $base_path = osmplayer_get_path() . '/templates';
+  $path = getcwd() . '/' . $base_path . '/*';
+  foreach (osmplayer_get_resources($path, $base_path) as $name => $resources) {
+    $templates[$name] = array(
+      'path' => $resources['path'],
+      'css' => $resources['css'],
+      'js' => $resources['js'],
+    );
+  }
+
+  // Return the templates.
+  return $templates;
 }
 
 /**
@@ -617,50 +679,4 @@ function osmplayer_get_resources($path, $base_path) {
     }
   }
   return $resources;
-}
-
-/**
- * Returns all of the osmplayer templates.
- *
- * @return string
- */
-function osmplayer_get_templates() {
-
-  // Get the osmplayer templates.
-  $templates = &drupal_static(__FUNCTION__);
-  if (!isset($templates)) {
-
-    // See if we have cached themes.
-    if ($templates = cache_get(__FUNCTION__)) {
-      $templates = $templates->data;
-      return $templates;
-    }
-    else {
-
-      // Get the osmplayer templates.
-      $base_path = osmplayer_get_path() . '/templates';
-      $path = getcwd() . '/' . $base_path . '/*';
-      $osmtemplates = osmplayer_get_resources($path, $base_path);
-
-      // Get the themes player templates.
-      $base_path = path_to_theme() . '/players';
-      $path = getcwd() . '/' . $base_path . '/*';
-      $osmtemplates = array_merge($osmtemplates, osmplayer_get_resources($path, $base_path));
-
-      $templates = array();
-      foreach ($osmtemplates as $name => $resources) {
-        $templates[$name] = array(
-          'path' => $resources['path'],
-          'css' => $resources['css'],
-          'js' => $resources['js'],
-        );
-      }
-
-      // Cache this request.
-      cache_set(__FUNCTION__, $templates);
-    }
-  }
-
-  // Return the templates.
-  return $templates;
 }
