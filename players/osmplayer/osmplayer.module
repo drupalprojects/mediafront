@@ -62,11 +62,13 @@ function osmplayer_get_player($params) {
 
   // Add any additional resources.
   if (!empty($info['resources'])) {
-    foreach ($info['resources'] as $resource) {
-      foreach ($resource['js'] as $js => $data) {
+    if (!empty($info['resources']['js'])) {
+      foreach ($info['resources']['js'] as $js => $data) {
         drupal_add_js($js, $data);
       }
-      foreach ($resource['css'] as $css => $data) {
+    }
+    if (!empty($info['resources']['css'])) {
+      foreach ($info['resources']['css'] as $css => $data) {
         drupal_add_css($css, $data);
       }
     }
@@ -605,8 +607,6 @@ function osmplayer_get_themes() {
   $themes = array();
   $base_path = osmplayer_get_path() . '/jquery-ui';
   $path = getcwd() . '/' . $base_path . '/*';
-
-  // Iterate through our templates directory.
   foreach(glob($path, GLOB_ONLYDIR) as $dir) {
     $name = basename($dir);
     $theme_path = $base_path . '/' . $name;
@@ -627,8 +627,6 @@ function osmplayer_get_themes() {
  * @return string
  */
 function osmplayer_get_templates() {
-
-  // Get the osmplayer templates.
   $templates = array();
   $base_path = osmplayer_get_path() . '/templates';
   $path = getcwd() . '/' . $base_path . '/*';
@@ -639,8 +637,6 @@ function osmplayer_get_templates() {
       'js' => $resources['js'],
     );
   }
-
-  // Return the templates.
   return $templates;
 }
 
