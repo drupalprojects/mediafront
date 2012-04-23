@@ -536,24 +536,19 @@ function mediafront_get_node($type, $entity, $fields) {
       // If this is an image field.
       else if ($field['type'] == 'image') {
 
-        // If we just want the original image...
-        if (($options['preview'] == 'mediafront_original') || ($options['thumbnail'] == 'medifaront_original')) {
-          $file = new MediaFile($value);
-          $node['mediafiles']['image']['image'] = $file;
-        }
+        // Iterate through the thumbnail and previews.
+        foreach (array('thumbnail', 'preview') as $image_type) {
 
-        // If we selected a preview style.
-        if (!empty($options['preview'])) {
-          $file = new MediaFile($value);
-          $file->path = image_style_url($options['preview'], $file->file->uri);
-          $node["mediafiles"]['image']['preview'] = $file;
-        }
-
-        // If we selected a thumbnail style.
-        if (!empty($options['thumbnail'])) {
-          $file = new MediaFile($value);
-          $file->path = image_style_url($options['thumbnail'], $file->file->uri);
-          $node["mediafiles"]['image']['thumbnail'] = $file;
+          // If we just want the original image...
+          if ($options[$image_type] == 'mediafront_original') {
+            $file = new MediaFile($value);
+            $node['mediafiles']['image']['image'] = $file;
+          }
+          else if (!empty($options[$image_type])) {
+            $file = new MediaFile($value);
+            $file->path = image_style_url($options[$image_type], $file->file->uri);
+            $node["mediafiles"]['image'][$image_type] = $file;
+          }
         }
       }
 
