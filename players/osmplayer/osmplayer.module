@@ -14,7 +14,7 @@ function osmplayer_init() {
  * Implements hook_get_player()
  */
 function osmplayer_get_player($params) {
-
+  global $base_url;
   $template = (isset($params['template']) && $params['template']) ? $params['template'] : "default";
   $showPlayer = isset($params['showWhenEmpty']) ? $params['showWhenEmpty'] : TRUE;
 
@@ -75,6 +75,8 @@ function osmplayer_get_player($params) {
   }
 
   // Get and encode the player parameters.
+  $params['logo'] = $base_url . '/' . $params['logo'];
+  $params['swfplayer'] = $base_url . '/' . $params['swfplayer'];
   $player_params = drupal_json_encode(module_invoke_all('osmplayer_params', $params));
 
   // Add the osmplayer js.
@@ -294,7 +296,6 @@ function osmplayer_get_player_settings() {
  *  These are the parameters that the player requires...
  */
 function osmplayer_get_player_params() {
-  global $base_url;
   return array(
     'id' => 'player',
     'debug' => false,
@@ -313,7 +314,7 @@ function osmplayer_get_player_params() {
     'autoNext' => TRUE,
     'shuffle' => FALSE,
     'loop' => FALSE,
-    'logo' => $base_url . '/' . osmplayer_get_path() . '/logo.png',
+    'logo' => '/' . osmplayer_get_path() . '/logo.png',
     'swfplayer' => '/' . osmplayer_get_path() . '/minplayer/flash/minplayer.swf',
     'link' => 'http://www.mediafront.org',
     'width' => '100%',
