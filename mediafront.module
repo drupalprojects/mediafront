@@ -583,6 +583,9 @@ function mediafront_get_node($type, $entity, $fields) {
     }
   }
 
+  // Allow other modules the opportunity to alter the node.
+  drupal_alter('mediafront_node', $entity, $fields, $node);
+
   // Return the node object.
   return $node;
 }
