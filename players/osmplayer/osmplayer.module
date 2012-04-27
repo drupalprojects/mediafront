@@ -663,16 +663,20 @@ function osmplayer_get_resources($path, $base_path) {
 
       // Now add the js files.
       $js_files = array();
-      foreach (glob($dir . '/js/*.js') as $js) {
-        $js_name = basename($js);
-        $js_files[$template_path . '/js/' . $js_name] = array('group' => JS_LIBRARY);
+      if ($files = glob($dir . '/js/*.js')) {
+        foreach ($files as $js) {
+          $js_name = basename($js);
+          $js_files[$template_path . '/js/' . $js_name] = array('group' => JS_LIBRARY);
+        }
       }
 
       // Now get the css files.
       $css_files = array();
-      foreach (glob($dir . '/css/*.css') as $css) {
-        $css_name = basename($css);
-        $css_files[$template_path . '/css/' . $css_name] = array('group' => CSS_THEME);
+      if ($files = glob($dir . '/css/*.css')) {
+        foreach ($files as $css) {
+          $css_name = basename($css);
+          $css_files[$template_path . '/css/' . $css_name] = array('group' => CSS_THEME);
+        }
       }
 
       // Add these to the resources array.
