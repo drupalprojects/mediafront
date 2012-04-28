@@ -600,8 +600,8 @@ function osmplayer_get_info() {
 function osmplayer_osmplayer_info() {
   return array(
     'resources' => array(),
-    'themes' => osmplayer_get_themes(),
-    'templates' => osmplayer_get_templates()
+    'themes' => osmplayer_get_themes(osmplayer_get_path() . '/jquery-ui'),
+    'templates' => osmplayer_get_templates(osmplayer_get_path() . '/templates')
   );
 }
 
@@ -609,9 +609,8 @@ function osmplayer_osmplayer_info() {
  * Returns the themes available to the OSM Player.
  * @return string
  */
-function osmplayer_get_themes() {
+function osmplayer_get_themes($base_path) {
   $themes = array();
-  $base_path = osmplayer_get_path() . '/jquery-ui';
   $path = getcwd() . '/' . $base_path . '/*';
   foreach(glob($path, GLOB_ONLYDIR) as $dir) {
     $name = basename($dir);
@@ -632,9 +631,8 @@ function osmplayer_get_themes() {
  *
  * @return string
  */
-function osmplayer_get_templates() {
+function osmplayer_get_templates($base_path) {
   $templates = array();
-  $base_path = osmplayer_get_path() . '/templates';
   $path = getcwd() . '/' . $base_path . '/*';
   foreach (osmplayer_get_resources($path, $base_path) as $name => $resources) {
     $templates[$name] = array(
