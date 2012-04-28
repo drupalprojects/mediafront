@@ -84,6 +84,11 @@
       });
     });
 
+    // Remove the player if there is nothing to play.
+    if (mediaNids.length == 0) {
+      $('#block-mediafront-mediaplayer').remove();
+    }
+
     // Handle when a user clicks on the next button.
     $("#mediaplayer_next").click(function(event) {
       event.preventDefault();
