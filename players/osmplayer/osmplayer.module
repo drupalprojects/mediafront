@@ -75,7 +75,9 @@ function osmplayer_get_player($params) {
   }
 
   // Get and encode the player parameters.
-  $params['logo'] = $base_url . '/' . $params['logo'];
+  if (!empty($params['logo'])) {
+    $params['logo'] = $base_url . '/' . $params['logo'];
+  }
   $params['swfplayer'] = $base_url . '/' . $params['swfplayer'];
   $player_params = drupal_json_encode(module_invoke_all('osmplayer_params', $params));
 
