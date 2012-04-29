@@ -283,7 +283,6 @@ function osmplayer_osmplayer_params($params) {
 function osmplayer_get_player_settings() {
   return array(
     'theme' => 'dark-hive',
-    'template' => 'default',
     'showWhenEmpty' => TRUE,
     'showController' => TRUE,
     'controllerOnly' => FALSE,
@@ -319,6 +318,7 @@ function osmplayer_get_player_params() {
     'link' => 'http://www.mediafront.org',
     'width' => '100%',
     'height' => '450px',
+    'template' => 'default',
     'playlistOnly' => FALSE,
     'disablePlaylist' => FALSE
   );
