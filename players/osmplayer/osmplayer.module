@@ -79,12 +79,13 @@ function osmplayer_get_player($params) {
     $params['logo'] = $base_url . '/' . $params['logo'];
   }
   $params['swfplayer'] = $base_url . '/' . $params['swfplayer'];
-  $player_params = drupal_json_encode(module_invoke_all('osmplayer_params', $params));
+  $player_params = module_invoke_all('osmplayer_params', $params);
+  $params = array_merge($params, $player_params);
 
   // Add the osmplayer js.
   drupal_add_js('
     jQuery(document).ready(function() {
-      jQuery("#' . $params['id'] . '").osmplayer(' . $player_params . ');
+      jQuery("#' . $params['id'] . '").osmplayer(' . drupal_json_encode($player_params) . ');
     });
   ', 'inline');
 
