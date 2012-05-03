@@ -286,7 +286,6 @@ function osmplayer_get_player_settings() {
     'template' => 'default',
     'showWhenEmpty' => TRUE,
     'showController' => TRUE,
-    'controllerOnly' => FALSE,
   );
 }
 
@@ -320,7 +319,8 @@ function osmplayer_get_player_params() {
     'width' => '100%',
     'height' => '450px',
     'playlistOnly' => FALSE,
-    'disablePlaylist' => FALSE
+    'disablePlaylist' => FALSE,
+    'controllerOnly' => FALSE,
   );
 }
 
