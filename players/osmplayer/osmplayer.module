@@ -75,14 +75,17 @@ function osmplayer_get_player($params) {
   }
 
   // Get and encode the player parameters.
-  $params['logo'] = $base_url . '/' . $params['logo'];
+  if (!empty($params['logo'])) {
+    $params['logo'] = $base_url . '/' . $params['logo'];
+  }
   $params['swfplayer'] = $base_url . '/' . $params['swfplayer'];
-  $player_params = drupal_json_encode(module_invoke_all('osmplayer_params', $params));
+  $player_params = module_invoke_all('osmplayer_params', $params);
+  $params = array_merge($params, $player_params);
 
   // Add the osmplayer js.
   drupal_add_js('
     jQuery(document).ready(function() {
-      jQuery("#' . $params['id'] . '").osmplayer(' . $player_params . ');
+      jQuery("#' . $params['id'] . '").osmplayer(' . drupal_json_encode($player_params) . ');
     });
   ', 'inline');
 
@@ -283,7 +286,6 @@ function osmplayer_osmplayer_params($params) {
 function osmplayer_get_player_settings() {
   return array(
     'theme' => 'dark-hive',
-    'template' => 'default',
     'showWhenEmpty' => TRUE,
     'showController' => TRUE,
   );
@@ -318,6 +320,7 @@ function osmplayer_get_player_params() {
     'link' => 'http://www.mediafront.org',
     'width' => '100%',
     'height' => '450px',
+    'template' => 'default',
     'playlistOnly' => FALSE,
     'disablePlaylist' => FALSE,
     'controllerOnly' => FALSE,
@@ -600,8 +603,8 @@ function osmplayer_get_info() {
 function osmplayer_osmplayer_info() {
   return array(
     'resources' => array(),
-    'themes' => osmplayer_get_themes(),
-    'templates' => osmplayer_get_templates()
+    'themes' => osmplayer_get_themes(osmplayer_get_path() . '/jquery-ui'),
+    'templates' => osmplayer_get_templates(osmplayer_get_path() . '/templates')
   );
 }
 
@@ -609,9 +612,8 @@ function osmplayer_osmplayer_info() {
  * Returns the themes available to the OSM Player.
  * @return string
  */
-function osmplayer_get_themes() {
+function osmplayer_get_themes($base_path) {
   $themes = array();
-  $base_path = osmplayer_get_path() . '/jquery-ui';
   $path = getcwd() . '/' . $base_path . '/*';
   foreach(glob($path, GLOB_ONLYDIR) as $dir) {
     $name = basename($dir);
@@ -632,9 +634,8 @@ function osmplayer_get_themes() {
  *
  * @return string
  */
-function osmplayer_get_templates() {
+function osmplayer_get_templates($base_path) {
   $templates = array();
-  $base_path = osmplayer_get_path() . '/templates';
   $path = getcwd() . '/' . $base_path . '/*';
   foreach (osmplayer_get_resources($path, $base_path) as $name => $resources) {
     $templates[$name] = array(
