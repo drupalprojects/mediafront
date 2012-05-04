@@ -76,9 +76,9 @@ function osmplayer_get_player($params) {
 
   // Get and encode the player parameters.
   if (!empty($params['logo'])) {
-    $params['logo'] = $base_url . '/' . $params['logo'];
+    $params['logo'] = $base_url . '/' . ltrim($params['logo'], '/');
   }
-  $params['swfplayer'] = $base_url . '/' . $params['swfplayer'];
+  $params['swfplayer'] = $base_url . '/' . ltrim($params['swfplayer'], '/');
   $player_params = module_invoke_all('osmplayer_params', $params);
   $params = array_merge($params, $player_params);
 
