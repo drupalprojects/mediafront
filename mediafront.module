@@ -462,33 +462,33 @@ function mediafront_get_node_field_instance_value($value) {
  * Returns the field values for a node entity.
  */
 function mediafront_get_node_field_value($entity, $field) {
+  $values = array();
 
   // Get the field name.
   $field_name = $field['field'];
 
-  // If this field isn't set in the node, then return empty string.
-  if (!isset($entity->{$field_name})) {
-    return '';
-  }
+  // Check for a valid field
+  if (isset($entity->{$field_name})) {
 
-  // Get the type of this field.
-  $type = gettype($entity->{$field_name});
+    // Get the type of this field.
+    $type = gettype($entity->{$field_name});
 
-  // If it isn't an object or an array, then just return the value.
-  if ($type != 'array') {
-    return $entity->{$field_name};
-  }
+    // If it isn't an object or an array, then just return the value.
+    if ($type != 'array') {
+      $values[] = $entity->{$field_name};
+    }
 
-  // Otherwise, we can assume it is a field.
-  if ($items = field_get_items('node', $entity, $field_name)) {
-    foreach ($items as $item) {
-      if ($value = mediafront_get_node_field_instance_value($item)) {
-        return $value;
+    // Otherwise, we can assume it is a field.
+    elseif ($items = field_get_items('node', $entity, $field_name)) {
+      foreach ($items as $item) {
+        if ($value = mediafront_get_node_field_instance_value($item)) {
+          $values[] = $value;
+        }
       }
     }
   }
 
-  return '';
+  return $values;
 }
 
 /**
@@ -496,7 +496,7 @@ function mediafront_get_node_field_value($entity, $field) {
  */
 function mediafront_get_view_field_value($row, $field) {
   $value = $field['field']->get_value($row);
-  return (is_array($value) && !empty($value[0])) ? $value[0] : $value;
+  return is_array($value) ? $value : array($value);
 }
 
 /**
@@ -525,12 +525,15 @@ function mediafront_get_node($type, $entity, $fields) {
     // Get the options.
     $options = $field['options'];
 
-    // Get the value for this field.
-    if ($value = mediafront_get_field_value($type, $entity, $field)) {
+    // Get the values for this field.
+    $values = mediafront_get_field_value($type, $entity, $field);
+    if (!empty($values)) {
 
       // If this is a media field.
       if ($field['type'] == 'media') {
-        $node['mediafiles']['media'][$options['media_type']] = new MediaFile($value);
+        foreach ($values as $value) {
+          $node['mediafiles']['media'][$options['media_type']][] = new MediaFile($value);
+        }
       }
 
       // If this is an image field.
@@ -541,11 +544,11 @@ function mediafront_get_node($type, $entity, $fields) {
 
           // If we just want the original image...
           if ($options[$image_type] == 'mediafront_original') {
-            $file = new MediaFile($value);
+            $file = new MediaFile($values[0]);
             $node['mediafiles']['image']['image'] = $file;
           }
           else if (!empty($options[$image_type])) {
-            $file = new MediaFile($value);
+            $file = new MediaFile($values[0]);
             $file->path = image_style_url($options[$image_type], $file->file->uri);
             $node["mediafiles"]['image'][$image_type] = $file;
           }
@@ -554,19 +557,19 @@ function mediafront_get_node($type, $entity, $fields) {
 
       // If this is the title field.
       else if ($field['type'] == 'title') {
-        $node['title'] = $value;
+        $node['title'] = $values[0];
       }
 
       // If this is a custom field.
       else if ($field['type'] == 'custom') {
 
         // Add this field to the node values.
-        $node[$options['custom']] = $value;
+        $node[$options['custom']] = $values[0];
       }
       else {
 
         // All other fields are added directly to the node.
-        $node[$field['field']] = $value;
+        $node[$field['field']] = $values[0];
       }
     }
   }
@@ -578,7 +581,7 @@ function mediafront_get_node($type, $entity, $fields) {
 
   // If we have media, but not preview, see if the media module can help us out...
   if (!empty($node['mediafiles']['media']) && empty($node['mediafiles']['image'])) {
-    if ($image = mediafront_get_media_preview($node['mediafiles']['media']['media'])) {
+    if ($image = mediafront_get_media_preview($node['mediafiles']['media']['media'][0])) {
       $node['mediafiles']['image']['image'] = $image;
     }
   }
