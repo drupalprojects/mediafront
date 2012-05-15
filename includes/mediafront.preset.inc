@@ -205,7 +205,7 @@ function mediafront_preset_form($form, &$form_state, $preset) {
    );
 
    $result = mediafront_preset_get_presets();
-   $presets = array();
+   $presets = array(0=>'-- None --');
    foreach( $result as $pid => $otherPreset ) {
       if( $otherPreset['name'] != $preset['name'] ) {
          $presets[$otherPreset['name']] = $otherPreset['name'];
@@ -218,7 +218,7 @@ function mediafront_preset_form($form, &$form_state, $preset) {
         '#multiple' => TRUE,
         '#title' => t('Make this preset the Control Bar for'),
         '#description' => t('Select which preset you would like to control using this preset.'),
-        '#default_value' => $preset['connect']['iscontroller'],
+        '#default_value' => !empty($preset['connect']['iscontroller']) ? $preset['connect']['iscontroller'] : 0,
         '#options' => $presets
      );
 
@@ -227,7 +227,7 @@ function mediafront_preset_form($form, &$form_state, $preset) {
         '#multiple' => TRUE,
         '#title' => t('Make this preset the Playlist for'),
         '#description' => t('Select which preset you would like to play this playlist.'),
-        '#default_value' => $preset['connect']['isplaylist'],
+        '#default_value' => !empty($preset['connect']['isplaylist']) ? $preset['connect']['isplaylist'] : 0,
         '#options' => $presets
      );
    }

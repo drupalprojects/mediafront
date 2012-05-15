@@ -21,6 +21,11 @@ function osmplayer_get_player($params) {
   // Always show the player when viewing through the admin interface.
   $showPlayer |= !empty($params['admin']);
 
+  // Fix the playlist string if they just pass in a view.
+  if (!empty($params['playlist']) && (gettype($params['playlist']) == 'string') && !preg_match('/^http(s)?:\/\//', $params['playlist'])) {
+    $params['playlist'] = '/mediafront_getplaylist/' . $params['playlist'];
+  }
+
   // If they provide the playlist object, encode it as JSON.
   if (isset($params['playlistObj']) && $params['playlistObj']) {
     $showPlayer |= ( $params['playlistObj']['total_rows'] > 0);
@@ -101,19 +106,21 @@ function osmplayer_get_player($params) {
  */
 function osmplayer_add_plugins($params, $type) {
 
+  $connnection = array_filter($params['connect']['is' . $type]);
+
   // Make sure we have a connection.
-  if (!empty($params['connect']['is' . $type])) {
+  if (!empty($connnection)) {
 
     // Add the javascript to get this plugin when ready.
-    $js = 'minplayer.get("mediafront_' . $params['preset'] . '", "' . $type . '", function(plugin) {';
+    $js = 'minplayer.get("mediafront_' . $params['preset'] . '", "' . $type . '", function(plugin) {' . "\n";
 
     // Iterate through the playlists.
-    foreach ($params['connect']['is' . $type] as $plugin) {
+    foreach ($connnection as $plugin) {
 
       // Add this plugin to this player.
       $js .= 'minplayer.get("mediafront_' . $plugin . '", "player", function(player) {
         player.addPlugin("' . $type . '", plugin);
-      });';
+      });' . "\n";
     }
 
     $js .= '});';
