@@ -106,27 +106,31 @@ function osmplayer_get_player($params) {
  */
 function osmplayer_add_plugins($params, $type) {
 
-  $connnection = array_filter($params['connect']['is' . $type]);
+  // Check to see if connect is set.
+  if (!empty($params['connect'])) {
 
-  // Make sure we have a connection.
-  if (!empty($connnection)) {
+    $connnection = array_filter($params['connect']['is' . $type]);
 
-    // Add the javascript to get this plugin when ready.
-    $js = 'minplayer.get("mediafront_' . $params['preset'] . '", "' . $type . '", function(plugin) {' . "\n";
+    // Make sure we have a connection.
+    if (!empty($connnection)) {
 
-    // Iterate through the playlists.
-    foreach ($connnection as $plugin) {
+      // Add the javascript to get this plugin when ready.
+      $js = 'minplayer.get("mediafront_' . $params['preset'] . '", "' . $type . '", function(plugin) {' . "\n";
 
-      // Add this plugin to this player.
-      $js .= 'minplayer.get("mediafront_' . $plugin . '", "player", function(player) {
-        player.addPlugin("' . $type . '", plugin);
-      });' . "\n";
+      // Iterate through the playlists.
+      foreach ($connnection as $plugin) {
+
+        // Add this plugin to this player.
+        $js .= 'minplayer.get("mediafront_' . $plugin . '", "player", function(player) {
+          player.addPlugin("' . $type . '", plugin);
+        });' . "\n";
+      }
+
+      $js .= '});';
+
+      // Add the javascript for this plugin.
+      drupal_add_js($js, 'inline');
     }
-
-    $js .= '});';
-
-    // Add the javascript for this plugin.
-    drupal_add_js($js, 'inline');
   }
 }
 
