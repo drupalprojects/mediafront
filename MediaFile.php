@@ -79,6 +79,11 @@ class MediaFile {
       }
     }
 
+    // If the value is set, then just return it.
+    if (!empty($file->value)) {
+      return $file->value;
+    }
+
     // Return nothing.
     return '';
   }
