@@ -28,11 +28,18 @@ class mediafront_plugin_style_player extends views_plugin_style {
   function init(&$view, &$display, $options = NULL) {
     parent::init($view, $display, $options);
 
-    // We don't want a pager.
+    /**
+     * This was keeping the view from being able to specify how many entries
+     * were in the playlist... if we want this, we need to figure out how
+     * to bring in the preset settings for pageLimit into the view to limit
+     * the amount of results displayed.
+     * 
     $view->display_handler->set_option('pager', array(
       'type' => 'some',
       'options' => $view->display_handler->options['pager']['options'],
     ));
+     *
+     */
 
     // We want to get the total rows.
     $view->get_total_rows = TRUE;
