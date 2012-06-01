@@ -44,6 +44,15 @@ function osmplayer_get_player($params) {
     $showPlayer |= isset($params['node']) && $params['node'];
   }
 
+  // Add the pre-reel and post-reel
+  if (!empty($params['prereel']) && empty($params['node']['mediafiles']['media']['prereel'])) {
+    $params['node']['mediafiles']['media']['prereel'] = new MediaFile($params['prereel']);;
+  }
+
+  if (!empty($params['postreel']) && empty($params['node']['mediafiles']['media']['postreel'])) {
+    $params['node']['mediafiles']['media']['postreel'] = new MediaFile($params['postreel']);;
+  }
+
   // Add the player connections.
   osmplayer_add_plugins($params, 'playlist');
 
@@ -299,6 +308,8 @@ function osmplayer_get_player_settings() {
     'theme' => 'dark-hive',
     'showWhenEmpty' => TRUE,
     'showController' => TRUE,
+    'prereel' => '',
+    'postreel' => '',
   );
 }
 
@@ -412,6 +423,18 @@ function osmplayer_player_settings_form($preset) {
     '#weight' => -9,
     '#collapsible' => true,
     '#collapsed' => true
+  );
+  $form['media_settings']['prereel'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Pre-Reel'),
+    '#description' => t('Enter the path of a media file which you would like to play at the beginning of the main media content.'),
+    '#default_value' => $preset['settings']['prereel']
+  );
+  $form['media_settings']['postreel'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Post-Reel'),
+    '#description' => t('Enter the path of a media file which you would like to play at the end of the main media content.'),
+    '#default_value' => $preset['settings']['postreel']
   );
   $form['media_settings']['volume'] = array(
     '#type' => 'textfield',
