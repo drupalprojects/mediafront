@@ -496,7 +496,7 @@ function mediafront_get_node_field_value($entity, $field) {
  */
 function mediafront_get_view_field_value($row, $field) {
   $value = $field['field']->get_value($row);
-  return is_array($value) ? $value : array($value);
+  return (is_array($value) && !empty($value[0])) ? $value : array($value);
 }
 
 /**
