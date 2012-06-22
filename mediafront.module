@@ -594,7 +594,9 @@ function mediafront_get_node($type, $entity, $fields) {
       }
     }
   }
-  else if (!empty($entity->type) && in_array($entity->type, array('video', 'audio'))) {
+
+  // Make sure this entity is a file field.
+  else if (!empty($entity->fid)) {
 
     // If this a media entity, then we need to handle that as well.
     $node['mediafiles']['media']['media'] = new MediaFile($entity);

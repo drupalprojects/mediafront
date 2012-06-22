@@ -76,16 +76,14 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
   if ($display['type'] == $type) {
 
     $player_fields = array();
-    $media_found = false;
 
+    // If this is a file, then we need just set the fields to the entity.
     if ($entity_type == 'file') {
-      if ($entity->type == 'video') {
-        $media_found = true;
-        $player_fields = $entity;
-      }
+      $player_fields = $entity;
     }
     else {
       // Get the fields.
+      $media_found = false;
       $entity_fields = field_info_instances($instance['entity_type'], $instance['bundle']);
       foreach ($entity_fields as $name => $entity_field) {
         $options = !empty($entity_field['settings']['mediafront']) ? $entity_field['settings']['mediafront'] : array();
