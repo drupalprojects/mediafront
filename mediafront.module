@@ -66,11 +66,8 @@ function theme_mediafront_player($variables) {
     return '';
   }
 
-  // Add the nodeObj to the media player.
-  $params = array('nodeObj' => mediafront_get_node('node', $entity, $variables['#fields']));
-
-  // Also set the nodeId for those who cannot just use the object.
-  $params['node'] = $entity->nid;
+  // Add the node to the media player.
+  $params = array('node' => mediafront_get_node('node', $entity, $variables['#fields']));
 
   // Nodes will never need the playlist.
   $params['disablePlaylist'] = true;
@@ -527,71 +524,81 @@ function mediafront_get_node($type, $entity, $fields) {
   // Create our node object.
   $node = array();
 
-  // Iterate through all of our fields.
-  foreach ($fields as $field) {
+  // Only iterate over fields if they are an array.
+  if (is_array($fields)) {
 
-    // Get the options.
-    $options = $field['options'];
+    // Iterate through all of our fields.
+    foreach ($fields as $field) {
 
-    // Get the values for this field.
-    $values = mediafront_get_field_value($type, $entity, $field);
-    if (!empty($values)) {
+      // Get the options.
+      $options = $field['options'];
 
-      // If this is a media field.
-      if ($field['type'] == 'media') {
-        foreach ($values as $value) {
-          $node['mediafiles']['media'][$options['media_type']][] = new MediaFile($value);
-        }
-      }
+      // Get the values for this field.
+      $values = mediafront_get_field_value($type, $entity, $field);
+      if (!empty($values)) {
 
-      // If this is an image field.
-      else if ($field['type'] == 'image') {
-
-        // Iterate through the thumbnail and previews.
-        foreach (array('thumbnail', 'preview') as $image_type) {
-
-          // If we just want the original image...
-          if ($options[$image_type] == 'mediafront_original') {
-            $file = new MediaFile($values[0]);
-            $node['mediafiles']['image']['image'] = $file;
-          }
-          else if (!empty($options[$image_type])) {
-            $file = new MediaFile($values[0]);
-            $file->path = image_style_url($options[$image_type], $file->file->uri);
-            $node["mediafiles"]['image'][$image_type] = $file;
+        // If this is a media field.
+        if ($field['type'] == 'media') {
+          foreach ($values as $value) {
+            $node['mediafiles']['media'][$options['media_type']][] = new MediaFile($value);
           }
         }
+
+        // If this is an image field.
+        else if ($field['type'] == 'image') {
+
+          // Iterate through the thumbnail and previews.
+          foreach (array('thumbnail', 'preview') as $image_type) {
+
+            // If we just want the original image...
+            if ($options[$image_type] == 'mediafront_original') {
+              $file = new MediaFile($values[0]);
+              $node['mediafiles']['image']['image'] = $file;
+            }
+            else if (!empty($options[$image_type])) {
+              $file = new MediaFile($values[0]);
+              $file->path = image_style_url($options[$image_type], $file->file->uri);
+              $node["mediafiles"]['image'][$image_type] = $file;
+            }
+          }
+        }
+
+        // If this is the title field.
+        else if ($field['type'] == 'title') {
+          $node['title'] = $values[0];
+        }
+
+        // If this is a custom field.
+        else if ($field['type'] == 'custom') {
+
+          // Add this field to the node values.
+          $node[$options['custom']] = $values[0];
+        }
+        else {
+
+          // All other fields are added directly to the node.
+          $node[$field['field']] = $values[0];
+        }
       }
+    }
 
-      // If this is the title field.
-      else if ($field['type'] == 'title') {
-        $node['title'] = $values[0];
-      }
+    // Always include the node title.
+    if ($type == 'node') {
+      $node['title'] = $entity->title;
+    }
 
-      // If this is a custom field.
-      else if ($field['type'] == 'custom') {
-
-        // Add this field to the node values.
-        $node[$options['custom']] = $values[0];
-      }
-      else {
-
-        // All other fields are added directly to the node.
-        $node[$field['field']] = $values[0];
+    // If we have media, but not preview, see if the media module can help us out...
+    if (!empty($node['mediafiles']['media']) && empty($node['mediafiles']['image'])) {
+      if ($image = mediafront_get_media_preview($node['mediafiles']['media']['media'][0])) {
+        $node['mediafiles']['image']['image'] = $image;
       }
     }
   }
+  else if (!empty($entity->type) && in_array($entity->type, array('video', 'audio'))) {
 
-  // Always include the node title.
-  if ($type == 'node') {
-    $node['title'] = $entity->title;
-  }
-
-  // If we have media, but not preview, see if the media module can help us out...
-  if (!empty($node['mediafiles']['media']) && empty($node['mediafiles']['image'])) {
-    if ($image = mediafront_get_media_preview($node['mediafiles']['media']['media'][0])) {
-      $node['mediafiles']['image']['image'] = $image;
-    }
+    // If this a media entity, then we need to handle that as well.
+    $node['mediafiles']['media']['media'] = new MediaFile($entity);
+    $node['title'] = $entity->filename;
   }
 
   // Allow other modules the opportunity to alter the node.

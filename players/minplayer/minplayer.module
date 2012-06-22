@@ -37,10 +37,10 @@ function minplayer_theme() {
  * Return the media source.
  */
 function minplayer_get_sources($type, &$params) {
-  if (isset($params['nodeObj']) &&
-      isset($params['nodeObj']['mediafiles']) &&
-      !empty($params['nodeObj']['mediafiles'][$type])) {
-    return $params['nodeObj']['mediafiles'][$type];
+  if (isset($params['node']) &&
+      isset($params['node']['mediafiles']) &&
+      !empty($params['node']['mediafiles'][$type])) {
+    return $params['node']['mediafiles'][$type];
   }
 
   return '';
@@ -55,8 +55,8 @@ function theme_minplayer($variables) {
   $params = $variables['params'];
 
   // Set the id.
-  if (isset($params['nodeObj'])) {
-    $params['id'] = 'player-' . $params['nodeObj']['nid'];
+  if (isset($params['node'])) {
+    $params['id'] = 'player-' . $params['node']['nid'];
   }
 
   // Get the attributes.
