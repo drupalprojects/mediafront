@@ -68,7 +68,7 @@ class mediafront_plugin_style_player extends views_plugin_style {
   function render() {
     // Now render the media player for this view.
     return mediafront_get_player($this->options['mediafront_preset'], array(
-      'playlistObj' => mediafront_get_playlist_from_view($this->view)
+      'playlist' => mediafront_get_playlist_from_view($this->view)
     ));
   }
 }

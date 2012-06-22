@@ -23,9 +23,37 @@ class mediafront_handler_area_player extends views_handler_area {
   }
 
   function render($empty = FALSE) {
+    static $instance = 0;
+    $instance++;
+
+    // Mediafront ID.
+    $id = 'mediafront_' . $this->view->name . '_' . $instance;
+
+    // Determine if any field wishes to link to the media player.
+    foreach ($this->view->field as $name => $field) {
+      if (!empty($field->options['mediafront']['link_to_player'])) {
+        drupal_add_js('
+          (function($) {
+            $(document).ready(function() {
+              $(".views-field-' . drupal_clean_css_identifier($name) . '").each(function(index, element) {
+                $(element).click(function(event) {
+                  event.preventDefault();
+                  minplayer.get("' . $id . '", "player", function(player) {
+                    player.loadNode(Drupal.settings.mediafront["' . $id . '"].playlist.nodes[index]);
+                  });
+                });
+              });
+            });
+          })(jQuery);
+        ', 'inline');
+      }
+    }
+
+    // Return the media player.
     return mediafront_get_player($this->options['mediafront_preset'], array(
+      'id' => $id,
       'disablePlaylist' => true,
-      'playlistObj' => mediafront_get_playlist_from_view($this->view)
+      'playlist' => mediafront_get_playlist_from_view($this->view)
     ));
   }
 }

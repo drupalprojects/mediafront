@@ -21,22 +21,32 @@ function osmplayer_get_player($params) {
   // Always show the player when viewing through the admin interface.
   $showPlayer |= !empty($params['admin']);
 
-  // Fix the playlist string if they just pass in a view.
-  if (!empty($params['playlist']) && (gettype($params['playlist']) == 'string') && !preg_match('/^http(s)?:\/\//', $params['playlist'])) {
-    $params['playlist'] = '/mediafront_getplaylist/' . $params['playlist'];
+  // For reverse compatability...
+  if (!empty($params['playlistObj'])) {
+    $params['playlist'] = $params['playlistObj'];
   }
 
   // If they provide the playlist object, encode it as JSON.
-  if (isset($params['playlistObj']) && $params['playlistObj']) {
-    $showPlayer |= ( $params['playlistObj']['total_rows'] > 0);
-    $params['playlist'] = $params['playlistObj'];
-  }
-  else {
-    $showPlayer |= isset($params['playlist']) && $params['playlist'];
+  if (!empty($params['playlist'])) {
+    switch (gettype($params['playlist'])) {
+      case 'string':
+        if (!preg_match('/^http(s)?:\/\//', $params['playlist'])) {
+          $params['playlist'] = '/mediafront_getplaylist/' . $params['playlist'];
+        }
+        $showPlayer = TRUE;
+        break;
+      case 'object':
+        $params['playlist'] = (array)$params['playlist'];
+      case 'array':
+        $showPlayer |= !empty($params['playlist']['total_rows']);
+        break;
+      default:
+        break;
+    }
   }
 
   // If they provide the node object, encode it as JSON.
-  if (isset($params['nodeObj']) && $params['nodeObj']) {
+  if (!empty($params['nodeObj'])) {
     $showPlayer |= isset($params['nodeObj']['mediafiles']) && (count($params['nodeObj']['mediafiles']) > 0);
     $params['node'] = $params['nodeObj'];
   }
@@ -96,12 +106,14 @@ function osmplayer_get_player($params) {
   $player_params = module_invoke_all('osmplayer_params', $params);
   $params = array_merge($params, $player_params);
 
-  // Add the osmplayer js.
-  drupal_add_js('
-    jQuery(document).ready(function() {
-      jQuery("#' . $params['id'] . '").osmplayer(' . drupal_json_encode($player_params) . ');
-    });
-  ', 'inline');
+  // Get the id.
+  $id = $params['id'];
+
+  // Add the osmplayer settings.
+  drupal_add_js(array('mediafront' => array($id => $player_params)), 'setting');
+
+  // Add the javascript file.
+  drupal_add_js(drupal_get_path('module', 'osmplayer') . '/osmplayer_drupal.js');
 
   // Show the player.
   return $showPlayer ? theme('osmplayer_' . $params['template'], array('params' => $params)) : '';

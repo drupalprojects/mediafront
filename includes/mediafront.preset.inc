@@ -617,6 +617,11 @@ function mediafront_get_preset($preset_name, $reset = FALSE) {
       }
     }
 
+    // Make sure to unset the id.
+    if (!empty($preset['settings']['id'])) {
+      unset($preset['settings']['id']);
+    }
+
     // Now cache it.
     cache_set('mediafront_preset_' . $preset_name, $preset);
 

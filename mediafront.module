@@ -250,6 +250,9 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
       // Add this as a playlist node.
       if ($node = mediafront_get_node('view', $row, $fields)) {
 
+        // Add the node ID.
+        $node['nid'] = $row->nid;
+
         // Add this node.
         $playlist['nodes'][] = $node;
       }
@@ -630,20 +633,27 @@ function mediafront_get_player() {
   // get the preset values.
   if (gettype($params) == 'string') {
     $preset = mediafront_get_preset($params, (is_array($params) && !empty($params['admin'])));
-    $params = isset($args[1]) ? !empty($preset['settings']) ? array_merge($preset['settings'], $args[1]) : $args[1] : $preset['settings'];
+    $params = !empty($args[1]) ? !empty($preset['settings']) ? array_merge($preset['settings'], $args[1]) : $args[1] : $preset['settings'];
     $params['preset'] = $preset['name'];
     $params['player'] = $preset['player'];
     $params['protocol'] = 'json';
     $params['connect'] = !empty($params['connect']) ? $params['connect'] : (!empty($preset['connect']) ? $preset['connect'] : array());
-    $params['id'] = 'mediafront_' . $preset['name'];
+    if (empty($params['id'])) {
+      $params['id'] = 'mediafront_' . $preset['name'];
 
-    // Find a unique id for this player.
-    $i = 1;
-    $id = $params['id'];
-    while (isset($players[$id])) {
-      $id = $params['id'] . '_' . $i++;
+      // Find a unique id for this player.
+      $i = 1;
+      $id = $params['id'];
+      while (isset($players[$id])) {
+        $id = $params['id'] . '_' . $i++;
+      }
+
+      // Set the id.
+      $params['id'] = $id;
     }
-    $players[$id] = $params['id'] = $id;
+
+    // Add to the players array.
+    $players[$params['id']] = $params['id'];
   }
 
   if ($params && is_array($params)) {
