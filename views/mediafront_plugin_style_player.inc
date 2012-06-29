@@ -33,7 +33,7 @@ class mediafront_plugin_style_player extends views_plugin_style {
      * were in the playlist... if we want this, we need to figure out how
      * to bring in the preset settings for pageLimit into the view to limit
      * the amount of results displayed.
-     * 
+     *
     $view->display_handler->set_option('pager', array(
       'type' => 'some',
       'options' => $view->display_handler->options['pager']['options'],
@@ -66,6 +66,10 @@ class mediafront_plugin_style_player extends views_plugin_style {
    * Renders the media player.
    */
   function render() {
+    if (empty($this->options['mediafront_preset'])) {
+      return t('You must select a preset for the Media Player style in the view.');
+    }
+
     // Now render the media player for this view.
     return mediafront_get_player($this->options['mediafront_preset'], array(
       'playlist' => mediafront_get_playlist_from_view($this->view)

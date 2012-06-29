@@ -66,7 +66,14 @@ class MediaFile {
 
     // If the path is set, then just return it.
     if (!empty($file->path)) {
-      return $file->path;
+
+      // Check to see if this is a URI.
+      if (file_valid_uri($file->path)) {
+        return file_create_url($file->path);
+      }
+      else {
+        return $file->path;
+      }
     }
 
     // If the uri is set, then just return it.

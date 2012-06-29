@@ -248,7 +248,9 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
       if ($node = mediafront_get_node('view', $row, $fields)) {
 
         // Add the node ID.
-        $node['nid'] = $row->nid;
+        if (!empty($row->nid)) {
+          $node['nid'] = $row->nid;
+        }
 
         // Add this node.
         $playlist['nodes'][] = $node;
@@ -414,7 +416,14 @@ function mediafront_preview_field_form($preview_default = 'mediafront_original',
  * @return array
  */
 function mediafront_get_media_preview($media) {
-  if (($media->class == 'media') && module_exists('media')) {
+
+  // Make sure this is a valid media file.
+  if (($media->class == 'media') &&
+       module_exists('media') &&
+       !empty($media->file) &&
+       !empty($media->file->type)) {
+
+    // Get the preview thumbnail image.
     $preview = media_get_thumbnail_preview($media->file);
     if ($preview) {
       $preview['#file'] = (object)$preview['#file'];
