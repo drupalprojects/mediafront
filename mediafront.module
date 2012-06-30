@@ -248,9 +248,8 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
       if ($node = mediafront_get_node('view', $row, $fields)) {
 
         // Add the node ID.
-        if (!empty($row->nid)) {
-          $node['nid'] = $row->nid;
-        }
+        if (!empty($row->nid))
+        $node['nid'] = $row->nid;
 
         // Add this node.
         $playlist['nodes'][] = $node;
@@ -574,19 +573,19 @@ function mediafront_get_node($type, $entity, $fields) {
 
         // If this is the title field.
         else if ($field['type'] == 'title') {
-          $node['title'] = is_array($values[0]) ? $values[0]['safe_value'] : $values[0];
+          $node['title'] = $values[0];
         }
 
         // If this is a custom field.
         else if ($field['type'] == 'custom') {
 
           // Add this field to the node values.
-          $node[$options['custom']] = is_array($values[0]) ? $values[0]['safe_value'] : $values[0];
+          $node[$options['custom']] = $values[0];
         }
         else {
 
           // All other fields are added directly to the node.
-          $node[$field['field']] = is_array($values[0]) ? $values[0]['safe_value'] : $values[0];
+          $node[$field['field']] = $values[0];
         }
       }
     }

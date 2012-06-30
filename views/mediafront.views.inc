@@ -15,7 +15,7 @@ function mediafront_views_plugins() {
     'module' => 'mediafront', // This just tells our themes are elsewhere.
     'style' => array(
       'mediaplayer' => array(
-        'title' => t('Media Player'),
+        'title' => t('MediaFront Player'),
         'help' => t('Shows this view as a Media Player, mapping fields to the playlist elements.'),
         'handler' => 'mediafront_plugin_style_player',
         'path' => "$path/views",
