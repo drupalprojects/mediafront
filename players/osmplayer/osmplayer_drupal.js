@@ -14,11 +14,13 @@
     $.each(Drupal.settings.mediafront_connect, function(plugin_id, settings) {
       minplayer.get(plugin_id, settings.type, function(plugin) {
         $.each(settings.connect, function(preset, preset) {
-          $.each(plugins[preset], function(player_id, player) {
-            minplayer.get(player_id, "player", function(player) {
-              player.addPlugin(settings.type, plugin);
+          if (plugins[preset]) {
+            $.each(plugins[preset], function(player_id, player) {
+              minplayer.get(player_id, "player", function(player) {
+                player.addPlugin(settings.type, plugin);
+              });
             });
-          });
+          }
         });
       });
     });
