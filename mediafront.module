@@ -465,6 +465,9 @@ function mediafront_get_node_field_instance_value($value) {
       return file_load($value['fid']);
     }
   }
+  else {
+    return $value;
+  }
 }
 
 /**
@@ -510,7 +513,13 @@ function mediafront_get_view_field_value($row, $field) {
     $offset = $field['field']->options['delta_offset'];
     $value = !empty($row->{$field_name}[$offset]) ? $row->{$field_name}[$offset]['raw'] : array();
   }
-  return (!$value || (is_array($value) && !empty($value[0]))) ? $value : array($value);
+  $values = (!$value || (is_array($value) && !empty($value[0]))) ? $value : array($value);
+  foreach ($values as $key => $value) {
+    if (is_array($value)) {
+      $values[$key] = mediafront_get_node_field_instance_value($value);
+    }
+  }
+  return $values;
 }
 
 /**
