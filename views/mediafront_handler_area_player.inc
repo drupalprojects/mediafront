@@ -27,7 +27,7 @@ class mediafront_handler_area_player extends views_handler_area {
     $instance++;
 
     // Mediafront ID.
-    $id = 'mediafront_' . $this->view->name . '_' . $instance;
+    $id = 'mediafront_' . $this->view->name . '_area_' . $instance;
 
     // Determine if any field wishes to link to the media player.
     foreach ($this->view->field as $name => $field) {

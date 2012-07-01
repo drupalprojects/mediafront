@@ -135,22 +135,11 @@ function osmplayer_add_plugins($params, $type) {
     // Make sure we have a connection.
     if (!empty($connnection)) {
 
-      // Add the javascript to get this plugin when ready.
-      $js = 'minplayer.get("mediafront_' . $params['preset'] . '", "' . $type . '", function(plugin) {' . "\n";
-
-      // Iterate through the playlists.
-      foreach ($connnection as $plugin) {
-
-        // Add this plugin to this player.
-        $js .= 'minplayer.get("mediafront_' . $plugin . '", "player", function(player) {
-          player.addPlugin("' . $type . '", plugin);
-        });' . "\n";
-      }
-
-      $js .= '});';
-
-      // Add the javascript for this plugin.
-      drupal_add_js($js, 'inline');
+      // Add the connection setting.
+      drupal_add_js(array('mediafront_connect' => array($params['id'] => array(
+        'type' => $type,
+        'connect' => $connnection
+      ))), 'setting');
     }
   }
 }
@@ -346,6 +335,7 @@ function osmplayer_get_player_params() {
     'node' => array(),
     'playlist' => '',
     'pageLimit' => 10,
+    'preset' => '',
     'autoNext' => TRUE,
     'shuffle' => FALSE,
     'loop' => FALSE,
