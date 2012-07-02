@@ -1,6 +1,4 @@
-MediaFront Module Readme
-
-Documentation By:  EnjoyLife (http://drupal.org/user/1122800)
+﻿MediaFront Module Readme
 
 CONTENTS OF THIS FILE
 ------------
@@ -13,19 +11,14 @@ CONTENTS OF THIS FILE
  * Preparing Drupal for MediaFront
  * Creating and configuring MediaFront presets
  * Creating and configuring playlists using Views
+ * Creating custom templates for MediaFront
  * Using links as media content
  * File formats
- * URLs
- * Theme configuration
 
 NOTES
 -----
 
  * This guide is for the 7.x-2.x branch of the MediaFront module.
- * This guide is taken from instructions at
-   http://www.YouTube.com/watch?v=ZZ3z0ko-uRU.
- * The following documentation is currently under development. You are welcome
-   to contribute at: http://drupal.org/node/1359498.
 
 MEDIAFRONT RESOURCES
 --------------------
@@ -37,8 +30,8 @@ MEDIAFRONT RESOURCES
  * Home Page:
    http://www.mediafront.org
  * Documentation:
-   http://drupal.org/project/mediafront and
-   http://www.mediafront.org/documentation
+   http://mediafront.org/documentation.html and
+   http://drupal.org/node/1563486
 
 INTRODUCTION TO MEDIAFRONT
 --------------------------
@@ -140,9 +133,6 @@ To start, you will need to create a new content type for media.
     In allowed file extensions, add the following:
     mp4 m4v mov flv f4v ogg ogv wmv vp6 vp5 mpg avi mpeg mp3 webm
 
-  - Optional: You can change the progress indicator to bar with progress
-    meter or leave it as throbber.
-
     The Media Upload Field Settings remain the same.
 
     Hit Save.
@@ -168,10 +158,8 @@ To start, you will need to create a new content type for media.
 
     Field, Label, Format:
     Body, Hidden, Default
-    Image Upload, Hidden, Image
     Media Upload, Hidden, Generic File
-
-    Drag Image Upload to the hidden section in the Manage Display settings.
+    Image Upload, Hidden, Hidden
 
     Save.
 
@@ -287,6 +275,8 @@ B. View with one large media player and a grid of files below
   5. Under Page Settings, set Path to media-grid. Hit Apply.
   6. Visit yoursite/media-grid. You should see a large media player with a grid
      of files below the player.
+  7. Optional: If you want the files below the player to control the player,
+     see Section D of Creating and Configuring Playlists Using Views.
 
 C. View with a grid of miniature media players
 
@@ -320,12 +310,31 @@ C. View with a grid of miniature media players
      i. Visit yoursite/gridplayer. You should see a page of miniature media
         players.
 
+D. Dynamically linking fields to the player
+     
+   Videos can be loaded dynamically into the player by linking a field to the
+   player. Within your view administration, edit the field you would like to
+   dynamically link to the Media Player. Within the MediaFront Settings of this
+   field, click the box next to "Link to Player". Save the field and view.
+
+CREATING CUSTOM TEMPLATES FOR MEDIAFRONT
+----------------------------------------
+
+One of the major features that MediaFront offers is it provides site builders
+the ability to completely build their own media players by using basic HTML5,
+CSS, and JavaScript. It employs a very flexible system where every template
+has complete control over the media player to modify not only how it looks,
+but also how it behaves. For information on creating custom templates, see:
+http://drupal.org/node/1563496.
+
 USING LINKS AS MEDIA CONTENT
 ----------------------------
 
 It is possible to configure MediaFront so that a video is pulled from
-externally hosted servers or from your own files. The player can also pull in
-streamed video content: YouTube, Vimeo, etc.
+externally hosted servers or from your own files. The below configuration
+explains how to set up a node type using a text field to bring in media
+content. The player can also pull in streamed video content (YouTube, Vimeo,
+etc) but this feature is currently being developed.
 
  1. Create a new content type. Go to Structure > Administration > Content
     types.
@@ -356,8 +365,8 @@ streamed video content: YouTube, Vimeo, etc.
     Body, Hidden, Default
     Media URL, Hidden, MediaFront Player
 
-    In the Media URL player settings, set the MediaFront preset to nodeplayer.
-    Hit Update. Hit save.
+    In the Media URL player settings, set the MediaFront preset to your desired
+	preset. Hit Update. Hit save.
 
  8. Add a node using this new content type.
 
@@ -366,69 +375,11 @@ streamed video content: YouTube, Vimeo, etc.
     Add a title. In the Media URL field, paste the url of a video. This link
     can be a streamed video or a video file hosted on a server. Hit Save.
 
- 9. (Optional) If you want to create a separate preset for Media links, you can
-    follow these steps. Create a preset to display url videos.
-
-    a. Go to Structure > MediaFront Presets > Add Preset.
-    b. Select a name for your preset. Let's name it urlplayer.
-    c. Add a description if you want. For Media Player, select Open Standard
-       Media Player. Hit Next.
-    d. You will see a preview of how MediaFront will display your media
-       content.
-    e. Go to Preset Settings > Player Settings > Playlist Settings> Display
-       Settings. Select Disable Playlist. Save preset.
-    f. Go to Structure > Content types > Media link > Manage Display. Change
-       the format for Media URL to MediaFront Player. Select the rotary wheel
-       to edit the MediaFront Presets settings. Select nodeplayer. Hit Update.
-       Save.
-
 FILE FORMATS
 ------------
 
-This section will cover supported file formats and how to encode video
-correctly so that it works with MediaFront.
+Supported audio and video file formats in MediaFront 7.x-2.x:
+mp4, m4v, mov, flv, f4v, ogg, ogv, wmv, vp6, vp5, mpg, avi, mpeg, mp3, webm
 
-An updated list of confirmed supported file formats will need to be added.
-Troubleshooting information for file format configuration would also be
-helpful.
-
-a. Mpeg/ Mpg
- - Encode in H.264 format.
-
-b. Ogg
- - This format seems to work fine.
-
-c. Flv
- - See http://drupal.org/node/1540002 for an update on flv.
-
-URLS
-----
-
-This section will cover supported externally hosted video. Externally hosted
-audio and video files can come from a web server or a video site (such as
-YouTube or Vimeo).
-
-See the section "Using Links as Media Content" for instructions on setting up
-Drupal and MediaFront to use urls as media content.
-
-a. Linking to video files
-
-   Copy and paste the url location of a supported file type into the text
-   field. For video and audio files, files must be of the following types:
-   mp4 m4v mov flv f4v ogg ogv wmv vp6 vp5 mpg avi mpeg mp3 webm
-
-b. YouTube
-
-   To copy and paste a YouTube link into the text field, you will need the
-   simple form of the link. For example:
-    - http://www.YouTube.com/watch?v=k7tbGXjMRWQ works fine.
-    - http://youtu.be/k7tbGXjMRWQ does not work.
-      Error shown: "Cannot play media: unknown."
-    - www.YouTube.com/watch?v=k7tbGXjMRWQ does not work.
-      Error shown: "Cannot play media: unknown."
-
-THEME CONFIGURATION
--------------------
-
-There is currently no documentation regarding custom themes and templates.
-Documentation will be forthcoming.
+Please see http://drupal.org/node/1565532 for recommendations for file 
+encoding and formatting.
