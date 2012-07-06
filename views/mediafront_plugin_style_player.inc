@@ -66,16 +66,13 @@ class mediafront_plugin_style_player extends views_plugin_style {
    * Renders the media player.
    */
   function render() {
-    static $instance = 0;
-    $instance++;
-    $id = 'mediafront_' . $this->view->name . '_style_' . $instance;
     if (empty($this->options['mediafront_preset'])) {
       return t('You must select a preset for the MediaFront Player style in the view.');
     }
 
     // Now render the media player for this view.
     return mediafront_get_player($this->options['mediafront_preset'], array(
-      'id' => $id,
+      'id' => mediafront_views_player_pre_render($this->view),
       'playlist' => mediafront_get_playlist_from_view($this->view)
     ));
   }
