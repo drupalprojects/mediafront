@@ -656,14 +656,6 @@ function mediafront_get_player() {
   $args = func_get_args();
   $params = $args[0];
 
-  // Handle the special case if they provided fields.
-  if (!empty($args[1]['variables']['#fields'])) {
-    foreach ($args[1]['variables']['#fields'] as $field) {
-      if (empty($args[1]['variables']['#entity']->$field['field'])) {
-        return;
-      }
-    }
-  }
 
   // If they pass in a string, then this is a preset.
   // get the preset values.
