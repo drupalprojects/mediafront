@@ -348,6 +348,7 @@ function osmplayer_get_player_params() {
     'playlistOnly' => FALSE,
     'disablePlaylist' => FALSE,
     'controllerOnly' => FALSE,
+    'volumeVertical' => TRUE,
   );
 }
 
@@ -567,6 +568,12 @@ function osmplayer_player_settings_form($preset) {
     '#title' => t('Controller Only'),
     '#description' => t('Select if you would like to ONLY see the control bar.'),
     '#default_value' => $preset['settings']['controllerOnly']
+  );
+  $form['control_settings']['volumeVertical'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Volume Vertical'),
+    '#description' => t('Unchecking this make the volume horizontal.'),
+    '#default_value' => $preset['settings']['volumeVertical']
   );
 
   $form['logo_settings'] = array(
