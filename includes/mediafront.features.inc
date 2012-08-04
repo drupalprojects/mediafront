@@ -27,7 +27,7 @@ function mediafront_features_export_render($module_name, $data) {
   foreach ($data as $key) {
     $preset = mediafront_get_preset($key);
     unset($preset['pid']);
-    unset($preset['id']);
+    unset($preset['settings']['id']);
     $items[$key] = $preset;
   }
   $code = "  \$items = ". features_var_export($items, '  ') .";\n";
