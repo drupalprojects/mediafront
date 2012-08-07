@@ -1,4 +1,4 @@
-name = MediaFront: YouTube Playlist Feeds Integration
+name = MediaFront: YouTube Playlist Feeds
 description = A feature module which provides MediaFront integration with YouTube Playlist Feeds
 core = 7.x
 package = MediaFront
