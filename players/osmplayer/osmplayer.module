@@ -51,7 +51,7 @@ function osmplayer_get_player($params) {
     $params['node'] = $params['nodeObj'];
   }
   else {
-    $showPlayer |= isset($params['node']) && $params['node'];
+    $showPlayer |= isset($params['node']['mediafiles']) && (count($params['node']['mediafiles']) > 0);
   }
 
   // Add the pre-reel and post-reel
