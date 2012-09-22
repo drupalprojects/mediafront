@@ -293,6 +293,7 @@ function mediafront_field_form($options, $id_prefix = '') {
     'title' => 'Title',
     'media' => 'Media',
     'image' => 'Image',
+    'stream' => 'Stream',
     'custom' => 'Custom'
   );
 
@@ -546,6 +547,7 @@ function mediafront_get_node($type, $entity, $fields) {
   if (is_array($fields)) {
 
     // Iterate through all of our fields.
+    $stream = '';
     foreach ($fields as $field) {
 
       // Get the options.
@@ -592,12 +594,20 @@ function mediafront_get_node($type, $entity, $fields) {
           // Add this field to the node values.
           $node[$options['custom']] = is_array($values[0]) ? $values[0]['safe_value'] : $values[0];
         }
+        else if ($field['type'] == 'stream') {
+          $stream = $values[0];
+        }
         else {
 
           // All other fields are added directly to the node.
           $node[$field['field']] = is_array($values[0]) ? $values[0]['safe_value'] : $values[0];
         }
       }
+    }
+
+    // If a stream was provided, then set it to the media file.
+    if ($stream && !empty($node['mediafiles']['media']['media'][0])) {
+      $node['mediafiles']['media']['media'][0]->stream = $stream;
     }
 
     // Always include the node title.

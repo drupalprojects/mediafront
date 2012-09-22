@@ -19,6 +19,9 @@ class MediaFile {
   /** The original file object. */
   public $file = null;
 
+  /** The stream for this file. */
+  public $stream = '';
+
   public function __construct($file) {
 
     // Check to make sure it is set.
