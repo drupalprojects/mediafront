@@ -56,7 +56,12 @@ function theme_minplayer($variables) {
 
   // Set the id.
   if (isset($params['node'])) {
-    $params['id'] = 'player-' . $params['variables']['#entity']->fid;
+    if (!empty($params['node']['nid'])) {
+      $params['id'] = 'player-' . $params['node']['nid'];
+    }
+    else {
+      $params['id'] = 'player-' . $params['variables']['#entity']->fid;
+    }
   }
 
   // Get the attributes.
