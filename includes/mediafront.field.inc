@@ -110,6 +110,13 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
     }
 
     $settings = $display['settings'];
+
+    // Use the first mediafront preset if none is defined.
+    if (empty($settings['preset'])) {
+      $preset = array_shift(mediafront_preset_get_presets());
+      $settings['preset'] = $preset['name'];
+    }
+
     $element[] = array(
       '#theme' => $type,
       '#entity' => $entity,
