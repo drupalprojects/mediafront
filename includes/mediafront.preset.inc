@@ -538,9 +538,15 @@ function mediafront_preset_save( $preset ) {
  * @return <type>
  */
 function mediafront_preset_get_default_presets() {
-  $default_presets = module_invoke_all('mediafront_default_presets');
-  drupal_alter('mediafront_default_presets', $default_presets);
-  return $default_presets;
+  $default_presets = &drupal_static(__FUNCTION__);
+  if ($default_presets) {
+    return $default_presets;
+  }
+  else {
+    $default_presets = module_invoke_all('mediafront_default_presets');
+    drupal_alter('mediafront_default_presets', $default_presets);
+    return $default_presets;
+  }
 }
 
 /**

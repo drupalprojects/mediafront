@@ -42,7 +42,7 @@ function mediafront_views_plugins() {
 function mediafront_form_views_ui_config_item_form_alter(&$form, &$form_state) {
 
   // Get the options for this field from the field handler.
-  $options = $form_state['handler']->options['mediafront'];
+  $options = mediafront_views_get_options($form_state['handler']);
 
   // Setup the mediafront settings for this field.
   $form['options']['mediafront'] = array(
@@ -75,8 +75,8 @@ function mediafront_form_views_ui_config_item_form_alter(&$form, &$form_state) {
  */
 function mediafront_form_views_ui_config_item_form_submit(&$form, &$form_state) {
 
-  // Store these settings in the field handler options.
-  $form_state['handler']->options['mediafront'] = $form_state['values']['options']['mediafront'];
+  // Set the options in the handler.
+  mediafront_views_set_options($form_state['handler'], $form_state['values']['options']['mediafront']);
 }
 
 /**
@@ -91,7 +91,8 @@ function mediafront_views_player_pre_render($view) {
 
   // Determine if any field wishes to link to the media player.
   foreach ($view->field as $name => $field) {
-    if (!empty($field->options['mediafront']['link_to_player'])) {
+    $options = mediafront_views_get_options($field);
+    if (!empty($options['link_to_player'])) {
       drupal_add_js('
         (function($) {
           $(document).ready(function() {

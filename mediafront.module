@@ -90,6 +90,11 @@ function mediafront_features_api() {
       'default_hook' => 'mediafront_default_presets',
       'file' => drupal_get_path('module', 'mediafront') .'/includes/mediafront.features.inc',
     ),
+    'mediafront_views' => array(
+      'name' => t('MediaFront Views Options'),
+      'default_hook' => 'mediafront_views_default_options',
+      'file' => drupal_get_path('module', 'mediafront') .'/includes/mediafront.features.inc',
+    )
   );
 }
 
@@ -103,6 +108,74 @@ function mediafront_views_api() {
     'api' => 2,
     'path' => drupal_get_path('module', 'mediafront') .'/views',
   );
+}
+
+/**
+ * Returns the default views options.
+ *
+ * @return <type>
+ */
+function mediafront_views_default_options() {
+  $default_options = &drupal_static(__FUNCTION__);
+  if ($default_options) {
+    return $default_options;
+  }
+  else {
+    $default_options = module_invoke_all('mediafront_views_default_options');
+    drupal_alter('mediafront_views_default_options', $default_options);
+    return $default_options;
+  }
+}
+
+/**
+ * Returns the options to be used within views.
+ *
+ * @param type $handler
+ */
+function mediafront_views_get_options($handler = NULL) {
+
+  // Get the variable first...
+  $options = variable_get('mediafront_views_options', array());
+
+  // Iterate through the defaults and see if there are any settings not provided.
+  foreach (mediafront_views_default_options() as $view => $fields_options) {
+    if (!isset($options[$view])) {
+      $options[$view] = $fields_options;
+    }
+    else {
+
+      // Now iterate through the fields and see if a field setting isn't provided.
+      foreach ($fields_options as $field_name => $field_options) {
+        if (!isset($options[$view][$field_name])) {
+          $options[$view][$field_name] = $field_options;
+        }
+      }
+    }
+  }
+
+  // If there are no options, then just return them.
+  if (!$handler) {
+    return $options;
+  }
+  else if ($options && !empty($options[$handler->view->name][$handler->field])) {
+    return $options[$handler->view->name][$handler->field];
+  }
+  else {
+    return $handler->options['mediafront'];
+  }
+}
+
+/**
+ * Sets the options for the views handler.
+ */
+function mediafront_views_set_options(&$handler, $options) {
+  // Store these settings in the field handler options.
+  $handler->options['mediafront'] = $options;
+
+  // Set these settings in a variable so they can be exported.
+  $settings = mediafront_views_get_options();
+  $settings[$handler->view->name][$handler->field] = $options;
+  variable_set('mediafront_views_options', $settings);
 }
 
 /**
@@ -228,7 +301,7 @@ function mediafront_get_playlist_from_view($view, $limit = 10, $start = 0) {
   // Iterate through each field and add the configuration.
   $fields = array();
   foreach ($view->field as $name => $field) {
-    $options = !empty($field->options['mediafront']) ? $field->options['mediafront'] : array();
+    $options = mediafront_views_get_options($field);
     if (!empty($options['field_type'])) {
       $fields[$field->field] = array(
         'type' => $options['field_type'],
