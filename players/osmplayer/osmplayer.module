@@ -373,7 +373,8 @@ function osmplayer_player_settings_form($preset) {
     '#title' => t('Presentation Settings'),
     '#weight' => -10,
     '#collapsible' => true,
-    '#collapsed' => true
+    '#collapsed' => true,
+    '#group' => 'player_settings',
   );
   $form['presentation']['theme'] = array(
     '#type' => 'select',
@@ -425,7 +426,8 @@ function osmplayer_player_settings_form($preset) {
     '#title' => t('Media Settings'),
     '#weight' => -9,
     '#collapsible' => true,
-    '#collapsed' => true
+    '#collapsed' => true,
+    '#group' => 'player_settings',
   );
   $form['media_settings']['prereel'] = array(
     '#type' => 'textfield',
@@ -464,7 +466,8 @@ function osmplayer_player_settings_form($preset) {
     '#title' => t('Playlist Settings'),
     '#weight' => -8,
     '#collapsible' => true,
-    '#collapsed' => true
+    '#collapsed' => true,
+    '#group' => 'player_settings',
   );
   $form['playlist_settings']['scrollSettings'] = array(
     '#type' => 'fieldset',
@@ -555,7 +558,8 @@ function osmplayer_player_settings_form($preset) {
     '#title' => t('Controller Settings'),
     '#weight' => -6,
     '#collapsible' => true,
-    '#collapsed' => true
+    '#collapsed' => true,
+    '#group' => 'player_settings',
   );
   $form['control_settings']['showController'] = array(
     '#type' => 'checkbox',
@@ -581,7 +585,8 @@ function osmplayer_player_settings_form($preset) {
     '#title' => t('Logo Settings'),
     '#weight' => -4,
     '#collapsible' => true,
-    '#collapsed' => true
+    '#collapsed' => true,
+    '#group' => 'player_settings',
   );
   $form['logo_settings']['logo'] = array(
     '#type' => 'textfield',
@@ -596,12 +601,34 @@ function osmplayer_player_settings_form($preset) {
     '#default_value' => $preset['settings']['link']
   );
 
+  $form['plugins'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Plugins'),
+    '#weight' => -2,
+    '#collapsible' => true,
+    '#collapsed' => true,
+    '#group' => 'player_settings',
+  );
+
+  // Iterate through all the plugins.
+  if (!empty($info['plugins'])) {
+    foreach ($info['plugins'] as $plugin) {
+
+    }
+  }
+  else {
+    $form['plugins']['no_plugins'] = array(
+      '#markup' => 'No plugins found.'
+    );
+  }
+
   $form['misc'] = array(
     '#type' => 'fieldset',
     '#title' => t('Other Settings'),
-    '#weight' => -3,
+    '#weight' => 0,
     '#collapsible' => true,
-    '#collapsed' => true
+    '#collapsed' => true,
+    '#group' => 'player_settings',
   );
 
   $form['misc']['debug'] = array(
@@ -647,7 +674,8 @@ function osmplayer_osmplayer_info() {
   return array(
     'resources' => array(),
     'themes' => osmplayer_get_themes(osmplayer_get_path() . '/jquery-ui'),
-    'templates' => osmplayer_get_templates(osmplayer_get_path() . '/templates')
+    'templates' => osmplayer_get_templates(osmplayer_get_path() . '/templates'),
+    'plugins' => array()
   );
 }
 
