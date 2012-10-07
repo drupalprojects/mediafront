@@ -54,16 +54,6 @@ function theme_minplayer($variables) {
   // Get the parameters.
   $params = $variables['params'];
 
-  // Set the id.
-  if (isset($params['node'])) {
-    if (!empty($params['node']['nid'])) {
-      $params['id'] = 'player-' . $params['node']['nid'];
-    }
-    else {
-      $params['id'] = 'player-' . $params['variables']['#entity']->fid;
-    }
-  }
-
   // Get the attributes.
   $attributes = html5_media_get_attributes($params);
 
@@ -77,6 +67,7 @@ function theme_minplayer($variables) {
   $mediasrc = array();
   if ($media = minplayer_get_sources('media', $params)) {
     $media = isset($media['media']) ? $media['media'] : array_shift($media);
+    $media = !empty($media[0]) ? $media[0] : $media;
     $mediasrc['value'] = $media->path;
     if (!empty($media->filemime)) {
       $mediasrc['filemime'] = $media->filemime;
