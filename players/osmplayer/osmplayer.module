@@ -97,7 +97,7 @@ function osmplayer_get_player($params) {
       osmplayer_add_resources($info['plugins'][$name]);
 
       // Make sure the params now pass the plugin object.
-      $plugin = !empty($info['plugins'][$name]['plugin']) ? $info['plugins'][$name]['plugin'] : $name;
+      $plugin = $name;
     }
     else {
 
@@ -812,7 +812,6 @@ function osmplayer_get_plugins($base_path) {
     $plugins[$name] = array(
       'title' => !empty($info['name']) ? $info['name'] : '',
       'description' => !empty($info['description']) ? $info['description'] : '',
-      'plugin' => !empty($info['plugin']) ? $info['plugin'] : '',
       'path' => $resources['path'],
       'css' => $resources['css'],
       'js' => $resources['js'],
