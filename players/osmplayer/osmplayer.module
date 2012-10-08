@@ -88,13 +88,21 @@ function osmplayer_get_player($params) {
   osmplayer_add_resources($info['resources']);
 
   // Iterate through our plugins.
-  foreach ($params['plugins'] as $name => $enabled) {
+  foreach ($params['plugins'] as $name => &$plugin) {
 
     // Make sure this plugin is enabled.
-    if (!empty($enabled)) {
+    if (!empty($plugin)) {
 
       // Add this plugins resources.
       osmplayer_add_resources($info['plugins'][$name]);
+
+      // Make sure the params now pass the plugin object.
+      $plugin = $info['plugins'][$name]['plugin'];
+    }
+    else {
+
+      // Make sure this isn't added to the minplayer.
+      unset($params['plugins'][$name]);
     }
   }
 
@@ -337,7 +345,6 @@ function osmplayer_get_player_settings() {
     'showController' => TRUE,
     'prereel' => '',
     'postreel' => '',
-    'plugins' => array(),
   );
 }
 
@@ -376,6 +383,7 @@ function osmplayer_get_player_params() {
     'disablePlaylist' => FALSE,
     'controllerOnly' => FALSE,
     'volumeVertical' => TRUE,
+    'plugins' => array(),
   );
 }
 
@@ -682,24 +690,28 @@ function osmplayer_player_settings_form($preset) {
 function theme_osmplayer_plugin_table($variables) {
   $info = osmplayer_get_info();
   $rows = array();
-  $header = array('', 'Preview', 'Title', 'Description');
+  $header = array('', 'Title', 'Description', 'Preview');
   $element = $variables['element'];
   $js = '';
   foreach ($info['plugins'] as $name => $plugin) {
-    $js .= 'showPlugin' . $name . ' = function() {';
-    $js .= 'jQuery("body").prepend(\'<div id="dialog-modal" title="Preview"><img width="520px" height="340px" src="' . url($plugin['preview']) . '" /></div>\');';
-    $js .= 'jQuery("#dialog-modal").dialog({modal: true, width: 540, height: 400, resizable: false});';
-    $js .= '};';
+    if (!empty($plugin['preview'])) {
+      $js .= 'showPlugin' . $name . ' = function() {';
+      $js .= 'jQuery("body").prepend(\'<div id="dialog-modal" title="Preview"><img width="520px" height="340px" src="' . url($plugin['preview']) . '" /></div>\');';
+      $js .= 'jQuery("#dialog-modal").dialog({modal: true, width: 540, height: 400, resizable: false});';
+      $js .= '};';
+    }
     $rows[] = array(
       drupal_render($element[$name]),
-      '<a onclick="showPlugin' . $name . '();">Show Preview</a>',
       $plugin['title'],
       $plugin['description'],
+      !empty($plugin['preview']) ? '<a onclick="showPlugin' . $name . '();">Show Preview</a>' : 'None',
     );
   }
 
-  // Add the JavaScipt to the page.
-  drupal_add_js($js, 'inline');
+  if ($js) {
+    // Add the JavaScipt to the page.
+    drupal_add_js($js, 'inline');
+  }
 
   // Return this as a table.
   return theme('table', array(
@@ -800,6 +812,7 @@ function osmplayer_get_plugins($base_path) {
     $plugins[$name] = array(
       'title' => !empty($info['name']) ? $info['name'] : '',
       'description' => !empty($info['description']) ? $info['description'] : '',
+      'plugin' => !empty($info['plugin']) ? $info['plugin'] : '',
       'path' => $resources['path'],
       'css' => $resources['css'],
       'js' => $resources['js'],
