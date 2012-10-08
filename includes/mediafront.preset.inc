@@ -273,7 +273,7 @@ function mediafront_preset_validate($form, &$form_state) {
  */
 function mediafront_preset_array_flatten($array,$return=array()) {
   foreach( $array as $key => $value ) {
-    if( is_array($value) ) {
+    if (is_array($value) && ($key != 'plugins')) {
       $return = mediafront_preset_array_flatten($value, $return);
     }
     else {

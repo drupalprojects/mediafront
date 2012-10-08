@@ -85,16 +85,16 @@ function osmplayer_get_player($params) {
   drupal_add_library('osmplayer', $library);
 
   // Add any additional resources.
-  if (!empty($info['resources'])) {
-    if (!empty($info['resources']['js'])) {
-      foreach ($info['resources']['js'] as $js => $data) {
-        drupal_add_js($js, $data);
-      }
-    }
-    if (!empty($info['resources']['css'])) {
-      foreach ($info['resources']['css'] as $css => $data) {
-        drupal_add_css($css, $data);
-      }
+  osmplayer_add_resources($info['resources']);
+
+  // Iterate through our plugins.
+  foreach ($params['plugins'] as $name => $enabled) {
+
+    // Make sure this plugin is enabled.
+    if (!empty($enabled)) {
+
+      // Add this plugins resources.
+      osmplayer_add_resources($info['plugins'][$name]);
     }
   }
 
@@ -117,6 +117,27 @@ function osmplayer_get_player($params) {
 
   // Show the player.
   return $showPlayer ? theme('osmplayer_' . $params['template'], array('params' => $params)) : '';
+}
+
+/**
+ * This function will add osmplayer resources.
+ *
+ * @param type $info
+ * @param type $type
+ */
+function osmplayer_add_resources($resources) {
+  if (!empty($resources)) {
+    if (!empty($resources['js'])) {
+      foreach ($resources['js'] as $js => $data) {
+        drupal_add_js($js, $data);
+      }
+    }
+    if (!empty($resources['css'])) {
+      foreach ($resources['css'] as $css => $data) {
+        drupal_add_css($css, $data);
+      }
+    }
+  }
 }
 
 /**
@@ -278,6 +299,11 @@ function osmplayer_theme() {
       'path' => $info['path']
     );
   }
+
+  $themes['osmplayer_plugin_table'] = array(
+    'render element' => 'element'
+  );
+
   return $themes;
 }
 
@@ -311,6 +337,7 @@ function osmplayer_get_player_settings() {
     'showController' => TRUE,
     'prereel' => '',
     'postreel' => '',
+    'plugins' => array(),
   );
 }
 
@@ -607,13 +634,19 @@ function osmplayer_player_settings_form($preset) {
     '#weight' => -2,
     '#collapsible' => true,
     '#collapsed' => true,
+    '#theme' => 'osmplayer_plugin_table',
     '#group' => 'player_settings',
   );
 
   // Iterate through all the plugins.
   if (!empty($info['plugins'])) {
-    foreach ($info['plugins'] as $plugin) {
-
+    drupal_add_library('system', 'ui.dialog');
+    foreach ($info['plugins'] as $name => $plugin) {
+      $default = !empty($preset['settings']['plugins'][$name]) ? $preset['settings']['plugins'][$name] : 0;
+      $form['plugins'][$name] = array(
+        '#type' => 'checkbox',
+        '#default_value' => $default,
+      );
     }
   }
   else {
@@ -638,6 +671,41 @@ function osmplayer_player_settings_form($preset) {
     '#default_value' => $preset['settings']['debug']
   );
   return $form;
+}
+
+/**
+ * Theme the plugin table.
+ *
+ * @param type $form
+ * @param type $form_state
+ */
+function theme_osmplayer_plugin_table($variables) {
+  $info = osmplayer_get_info();
+  $rows = array();
+  $header = array('', 'Preview', 'Title', 'Description');
+  $element = $variables['element'];
+  $js = '';
+  foreach ($info['plugins'] as $name => $plugin) {
+    $js .= 'showPlugin' . $name . ' = function() {';
+    $js .= 'jQuery("body").prepend(\'<div id="dialog-modal" title="Preview"><img width="520px" height="340px" src="' . url($plugin['preview']) . '" /></div>\');';
+    $js .= 'jQuery("#dialog-modal").dialog({modal: true, width: 540, height: 400, resizable: false});';
+    $js .= '};';
+    $rows[] = array(
+      drupal_render($element[$name]),
+      '<a onclick="showPlugin' . $name . '();">Show Preview</a>',
+      $plugin['title'],
+      $plugin['description'],
+    );
+  }
+
+  // Add the JavaScipt to the page.
+  drupal_add_js($js, 'inline');
+
+  // Return this as a table.
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+  ));
 }
 
 /**
@@ -671,11 +739,12 @@ function osmplayer_get_info() {
  * Implementation of hook_osmplayer_player_info
  */
 function osmplayer_osmplayer_info() {
+  $path = osmplayer_get_path();
   return array(
     'resources' => array(),
-    'themes' => osmplayer_get_themes(osmplayer_get_path() . '/jquery-ui'),
-    'templates' => osmplayer_get_templates(osmplayer_get_path() . '/templates'),
-    'plugins' => array()
+    'themes' => osmplayer_get_themes($path . '/jquery-ui'),
+    'templates' => osmplayer_get_templates($path . '/templates'),
+    'plugins' => osmplayer_get_plugins($path . '/minplayer/plugins'),
   );
 }
 
@@ -719,6 +788,28 @@ function osmplayer_get_templates($base_path) {
 }
 
 /**
+ * Returns all of the osmplayer plugins.
+ *
+ * @return string
+ */
+function osmplayer_get_plugins($base_path) {
+  $plugins = array();
+  $path = getcwd() . '/' . $base_path . '/*';
+  foreach (osmplayer_get_resources($path, $base_path) as $name => $resources) {
+    $info = drupal_parse_info_file($resources['path'] . '/' . $name . '.info');
+    $plugins[$name] = array(
+      'title' => !empty($info['name']) ? $info['name'] : '',
+      'description' => !empty($info['description']) ? $info['description'] : '',
+      'path' => $resources['path'],
+      'css' => $resources['css'],
+      'js' => $resources['js'],
+      'preview' => array_pop($resources['images']),
+    );
+  }
+  return $plugins;
+}
+
+/**
  * Gets the CSS and JS files within a directory.
  */
 function osmplayer_get_resources($path, $base_path) {
@@ -732,6 +823,15 @@ function osmplayer_get_resources($path, $base_path) {
       $resources[$name] = array(
         'path' => $template_path,
       );
+
+      // Get all the images.
+      $images = array();
+      if ($files = glob($dir . '/*.png')) {
+        foreach ($files as $image) {
+          $image = basename($image);
+          $images[$template_path . '/' . $image] = $template_path . '/' . $image;
+        }
+      }
 
       // Now add the js files.
       $js_files = array();
@@ -754,6 +854,7 @@ function osmplayer_get_resources($path, $base_path) {
       // Add these to the resources array.
       $resources[$name]['js'] = $js_files;
       $resources[$name]['css'] = $css_files;
+      $resources[$name]['images'] = $images;
     }
   }
   return $resources;
