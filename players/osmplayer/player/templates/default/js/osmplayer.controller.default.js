@@ -57,6 +57,9 @@
 
         // Make sure the player shows overflow for controller only.
         player.display.css('overflow', 'visible');
+        this.elements.fullscreen.hide();
+        jQuery('.minplayer-' + template + '-controls-right', player.display).width(180);
+        jQuery('.minplayer-' + template + '-controls-mid', player.display).css('right', '190px');
       }
     });
   }
