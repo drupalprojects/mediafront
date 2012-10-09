@@ -29,7 +29,7 @@
    */
   osmplayer.controller[template].prototype.construct = function() {
     minplayer.controller.prototype.construct.call(this);
-    if (!this.options.volumeVertical || this.options.controllerOnly) {
+    if (!this.options.volumeVertical) {
       this.display.addClass('minplayer-controls-volume-horizontal');
       this.display.removeClass('minplayer-controls-volume-vertical');
       this.volumeBar.slider("option", "orientation", "horizontal");
@@ -39,21 +39,26 @@
       this.display.removeClass('minplayer-controls-volume-horizontal');
     }
 
-    if (!this.options.controllerOnly) {
-      this.get('player', function(player) {
+    this.get('player', function(player) {
+      if (!this.options.controllerOnly) {
         this.get('media', function(media) {
           if (!media.hasController()) {
             minplayer.showThenHide(this.display, 5000, function(shown) {
               var op = shown ? 'addClass' : 'removeClass';
               player.display[op]('with-controller');
-            }, player.display);
+            }, [player.display, media.display]);
           }
           else {
             player.display.addClass('with-controller');
           }
         });
-      });
-    }
+      }
+      else {
+
+        // Make sure the player shows overflow for controller only.
+        player.display.css('overflow', 'visible');
+      }
+    });
   }
 
   /**
