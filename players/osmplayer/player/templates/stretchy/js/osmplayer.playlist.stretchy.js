@@ -34,7 +34,11 @@
     // Make the main minplayer have the same width as the playlist.
     this.get('player', function(player) {
 
-      minplayer.showThenHide(player.display, 5000);
+      this.get('media', function(media) {
+        
+        // Show then hide the playlist on media player display.
+        minplayer.showThenHide(this.display, 5000, null, [player.display, media.display]);
+      });
 
       // Set the size.
       var size = this.options.vertical ? 'width' : 'height';
