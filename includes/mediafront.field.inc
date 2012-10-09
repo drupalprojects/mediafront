@@ -96,11 +96,14 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
 
         // Reset the options.
         $options = array();
+        $include = TRUE;
 
         // If a views field is defined, use the options from it instead.
         if (!empty($view)) {
+          $include = FALSE;
           foreach ($view->field as $view_field) {
             if ($view_field->field == $name) {
+              $include = TRUE;
               $options = $view_field->options['mediafront'];
               break;
             }
@@ -112,7 +115,7 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
           $options = !empty($entity_field['settings']['mediafront']) ? $entity_field['settings']['mediafront'] : array();
         }
 
-        if (!empty($options['field_type'])) {
+        if ($include && !empty($options['field_type'])) {
           $media_found |= ($options['field_type'] == 'media');
           $player_fields[$entity_field['field_name']] = array(
             'type' => $options['field_type'],
