@@ -428,13 +428,13 @@ function osmplayer_player_settings_form($preset) {
   $form['presentation']['width'] = array(
     '#type' => 'textfield',
     '#title' => t('Player Width'),
-    '#description' => t('Enter the width of the player.'),
+    '#description' => t('Enter the width of the player, or leave blank to provide the width from CSS.  <em>Example: "100%" or "300px".</em>'),
     '#default_value' => $preset['settings']['width']
   );
   $form['presentation']['height'] = array(
     '#type' => 'textfield',
     '#title' => t('Player Height'),
-    '#description' => t('Enter the height of the player.'),
+    '#description' => t('Enter the height of the player, or leave blank to provide the height from CSS. <em>Example: "200px".</em>'),
     '#default_value' => $preset['settings']['height']
   );
   $form['presentation']['showWhenEmpty'] = array(
