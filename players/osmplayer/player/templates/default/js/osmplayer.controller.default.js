@@ -11,11 +11,6 @@
    */
   osmplayer.controller[template] = function(context, options) {
 
-    // Make sure we provide default options...
-    this.options = jQuery.extend({
-      volumeVertical: true
-    }, this.options);
-
     // Derive from default controller
     minplayer.controller.call(this, context, options);
   };
@@ -28,8 +23,14 @@
    * @see minplayer.plugin#construct
    */
   osmplayer.controller[template].prototype.construct = function() {
+
+    // Make sure we provide default options...
+    this.options = jQuery.extend({
+      volumeVertical: true
+    }, this.options);
+
     minplayer.controller.prototype.construct.call(this);
-    if (!this.options.volumeVertical) {
+    if (!this.options.volumeVertical || this.options.controllerOnly) {
       this.display.addClass('minplayer-controls-volume-horizontal');
       this.display.removeClass('minplayer-controls-volume-vertical');
       this.volumeBar.slider("option", "orientation", "horizontal");
@@ -39,29 +40,21 @@
       this.display.removeClass('minplayer-controls-volume-horizontal');
     }
 
-    this.get('player', function(player) {
-      if (!this.options.controllerOnly) {
+    if (!this.options.controllerOnly) {
+      this.get('player', function(player) {
         this.get('media', function(media) {
           if (!media.hasController()) {
-            minplayer.showThenHide(this.display, 5000, function(shown) {
+            this.showThenHide(5000, function(shown) {
               var op = shown ? 'addClass' : 'removeClass';
               player.display[op]('with-controller');
-            }, [player.display, media.display]);
+            });
           }
           else {
             player.display.addClass('with-controller');
           }
         });
-      }
-      else {
-
-        // Make sure the player shows overflow for controller only.
-        player.display.css('overflow', 'visible');
-        this.elements.fullscreen.hide();
-        jQuery('.minplayer-' + template + '-controls-right', player.display).width(180);
-        jQuery('.minplayer-' + template + '-controls-mid', player.display).css('right', '190px');
-      }
-    });
+      });
+    }
   }
 
   /**
