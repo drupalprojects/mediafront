@@ -605,6 +605,9 @@ function mediafront_get_preset($preset_name, $reset = FALSE) {
   // Get the preset from cache.
   $cache = cache_get('mediafront_preset_' . $preset_name);
   if (!$reset && $cache) {
+    if (!empty($cache->data['settings']['id'])) {
+      unset($cache->data['settings']['id']);
+    }
     return $cache->data;
   }
   else {
