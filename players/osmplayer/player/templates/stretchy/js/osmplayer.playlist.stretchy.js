@@ -29,16 +29,10 @@
     osmplayer.playlist.prototype.construct.call(this);
 
     // Show then hide the element.
-    minplayer.showThenHide(this.elements.hideShow);
+    this.showThenHide(this.elements.hideShow);
 
     // Make the main minplayer have the same width as the playlist.
     this.get('player', function(player) {
-
-      this.get('media', function(media) {
-        
-        // Show then hide the playlist on media player display.
-        minplayer.showThenHide(this.display, 5000, null, [player.display, media.display]);
-      });
 
       // Set the size.
       var size = this.options.vertical ? 'width' : 'height';
@@ -73,6 +67,17 @@
           this.display.css(displayPos);
         }
       };
+
+      // Show then hide the playlist.
+      this.display.showMe = false;
+      this.display.hideMe = (function(playlist) {
+        return function(callback) {
+          playlist.hideShow(false, true);
+        };
+      })(this);
+
+      // Show then hide the display.
+      this.showThenHide();
 
       // Bind when the playlist loads.
       this.bind('playlistLoad', (function(playlist) {
