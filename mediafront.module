@@ -585,7 +585,7 @@ function mediafront_get_view_field_value($row, $field) {
   if (!$value) {
     $field_name = $field['field']->handler_type . '_' . $field['field']->field;
     $offset = $field['field']->options['delta_offset'];
-    $value = !empty($row->{$field_name}[$offset]) ? $row->{$field_name}[$offset]['raw'] : array();
+    $value = !empty($row->{$field_name}[$offset]['raw']) ? $row->{$field_name}[$offset]['raw'] : array();
   }
   $values = (!$value || (is_array($value) && !empty($value[0]))) ? $value : array($value);
   foreach ($values as $key => $value) {
