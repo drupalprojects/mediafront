@@ -91,7 +91,7 @@ function osmplayer_get_player($params) {
   foreach ($params['plugins'] as $name => &$plugin) {
 
     // Make sure this plugin is enabled.
-    if (!empty($plugin)) {
+    if (!empty($plugin) && !empty($info['plugins'][$name])) {
 
       // Add this plugins resources.
       osmplayer_add_resources($info['plugins'][$name]);
