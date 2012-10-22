@@ -154,7 +154,7 @@ function mediafront_views_get_options($handler = NULL) {
   }
 
   // If there are no options, then just return them.
-  if (!$handler) {
+  if (!$handler || empty($handler->options['mediafront'])) {
     return $options;
   }
   else if ($options && !empty($options[$handler->view->name][$handler->field])) {
