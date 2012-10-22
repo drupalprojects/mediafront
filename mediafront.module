@@ -712,6 +712,50 @@ function mediafront_get_node($type, $entity, $fields) {
 }
 
 /**
+ * Implementation of hook_token_info
+ *
+ * @return type
+ */
+function mediafront_token_info() {
+  $type = array(
+    'name' => t('MediaFront'),
+    'description' => t('Adds mediafront players using tokens.'),
+  );
+
+  $presets = mediafront_preset_get_presets();
+  foreach ($presets as $preset) {
+    $mediafront[$preset['name']] = array(
+      'name' => 'MediaFront ' . $preset['name'] . ' preset',
+      'description' => $preset['description'],
+    );
+  }
+
+  // Return an array of tokens allowed by this module.
+  return array(
+    'types' => array('mediafront' => $type),
+    'tokens' => array('mediafront' => $mediafront),
+  );
+}
+
+/**
+ * Implements hook_tokens
+ */
+function mediafront_tokens($type, $tokens, array $data = array(), array $options = array()) {
+  $players = &drupal_static(__FUNCTION__);
+  $replacements = array();
+  if ($type == 'mediafront') {
+    foreach ($tokens as $name => $original) {
+      if (!isset($players[$name])) {
+        $players[$name] = mediafront_get_player($name);
+      }
+
+      $replacements[$original] = $players[$name];
+    }
+  }
+  return $replacements;
+}
+
+/**
  * Returns a media player.
  *
  * @param - This can either be an associative array with the settings,
