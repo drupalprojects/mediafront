@@ -1,18 +1,22 @@
 (function($) {
-  $(document).ready(function() {
-
-    // Iterate through each mediafront player settings.
-    var plugins = {};
-    if (Drupal.settings.hasOwnProperty('mediafront')) {
-      $.each(Drupal.settings.mediafront, function(id, settings) {
-        if (typeof plugins[settings.preset] !== 'object') {
-          plugins[settings.preset] = {};
-        }
-        plugins[settings.preset][settings.id] = $("#" + id).osmplayer(settings);
-      });
+  var plugins = {};
+  Drupal.behaviors.mediafront = {
+    attach: function(context) {
+      // Iterate through each mediafront player settings.
+      if (Drupal.settings.hasOwnProperty('mediafront')) {
+        $.each(Drupal.settings.mediafront, function(id, settings) {
+          $("#" + id + ":not(.mediafront-processed)").each(function() {
+            if (typeof plugins[settings.preset] !== 'object') {
+              plugins[settings.preset] = {};
+            }
+            plugins[settings.preset][settings.id] = $(this).addClass('mediafront-processed').osmplayer(settings);
+          });
+        });
+      }
     }
-
-    // Now setup all the connections.
+  };
+  
+  $(document).ready(function() {
     if (Drupal.settings.hasOwnProperty('mediafront_connect')) {
       $.each(Drupal.settings.mediafront_connect, function(plugin_id, settings) {
         minplayer.get(plugin_id, settings.type, function(plugin) {
@@ -27,6 +31,6 @@
           });
         });
       });
-    }
+    }  
   });
 })(jQuery);
