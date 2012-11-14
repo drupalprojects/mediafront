@@ -65,16 +65,6 @@ function timeline_bookmark_osmplayer_params($params) {
   return array();
 }
 
-/**
- * Implements hook_views_api().
- */
-function timeline_bookmark_views_api() {
-  return array(
-    'api' => 3.0,
-    'path' => drupal_get_path('module', 'timeline_bookmark') . '/views',
-  );
-}
-
 function timeline_bookmark_get_bookmark($account, $entity_type, $entity_id, $mediatime) {
   $bookmark = null;
 
