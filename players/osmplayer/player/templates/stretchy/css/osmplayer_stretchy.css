@@ -499,6 +499,10 @@
   font-family:"Trebuchet MS", Helvetica, sans-serif;
 }
 
+.osmplayer-stretchy.controller-only {
+  padding-bottom: 0;
+}
+
 .minplayer-stretchy {
   position: absolute;
   top: 0px;

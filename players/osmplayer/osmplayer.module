@@ -113,6 +113,10 @@ function osmplayer_get_player($params) {
   $params['swfplayer'] = $base_url . '/' . ltrim($params['swfplayer'], '/');
   $player_params = module_invoke_all('osmplayer_params', $params);
   $params = array_merge($params, $player_params);
+  $player_params['node'] = &$params['node'];
+
+  // Allow other modules to alter the params.
+  drupal_alter('osmplayer_params', $params);
 
   // Get the id.
   $id = $params['id'];
