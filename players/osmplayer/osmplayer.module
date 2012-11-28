@@ -116,7 +116,7 @@ function osmplayer_get_player($params) {
   $player_params['node'] = &$params['node'];
 
   // Allow other modules to alter the params.
-  drupal_alter('osmplayer_params', $params);
+  drupal_alter('osmplayer_params', $params, $player_params);
 
   // Get the id.
   $id = $params['id'];
@@ -361,6 +361,8 @@ function osmplayer_get_player_params() {
   return array(
     'id' => 'player',
     'debug' => false,
+    'disptime' => 0,
+    'duration' => 0,
     'volume' => 80,
     'wmode' => 'transparent',
     'preload' => TRUE,
