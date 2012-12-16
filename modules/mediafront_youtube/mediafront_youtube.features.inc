@@ -180,6 +180,41 @@ function mediafront_youtube_mediafront_default_presets() {
 }
 
 /**
+ * Implements hook_mediafront_views_default_options().
+ */
+function mediafront_youtube_mediafront_views_default_options() {
+  $options = array(
+    'youtube_media' => array(
+      'title' => array(
+        'link_to_player' => 1,
+        'field_type' => 'title',
+        'media_type' => 'media',
+        'preview' => '0',
+        'thumbnail' => '0',
+        'custom' => '',
+      ),
+      'field_youtube_poster' => array(
+        'link_to_player' => 1,
+        'field_type' => 'image',
+        'media_type' => 'media',
+        'preview' => 'large',
+        'thumbnail' => 'thumbnail',
+        'custom' => '',
+      ),
+      'field_youtube_url' => array(
+        'link_to_player' => 0,
+        'field_type' => 'media',
+        'media_type' => 'media',
+        'preview' => '0',
+        'thumbnail' => '0',
+        'custom' => '',
+      ),
+    ),
+  );
+  return $options;
+}
+
+/**
  * Implements hook_node_info().
  */
 function mediafront_youtube_node_info() {
