@@ -21,7 +21,7 @@ function mediafront_preset_permission() {
  * @return <string> The path to the module presets.
  */
 function mediafront_get_presets_path() {
-  return 'admin/structure/mediafront';
+  return 'admin/config/media/mediafront';
 }
 
 /**
