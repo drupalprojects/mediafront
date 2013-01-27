@@ -1,16 +1,5 @@
 <?php
 /**
- * For debugging purposes only...
-function osmplayer_init() {
-  drupal_add_js('http://192.168.1.5:8080/target/target-script-min.js#anonymous', array(
-    'type' => 'external',
-    'group' => JS_LIBRARY,
-    'weight' => -1000
-  ));
-}
- */
-
-/**
  * Implements hook_get_player()
  */
 function osmplayer_get_player($params) {
@@ -63,11 +52,50 @@ function osmplayer_get_player($params) {
     $params['node']['mediafiles']['media']['postreel'] = new MediaFile($params['postreel']);;
   }
 
-  // Add the player connections.
-  osmplayer_add_plugins($params, 'playlist');
+  // Get and encode the player parameters.
+  if (!empty($params['logo'])) {
+    $params['logo'] = $base_url . '/' . ltrim($params['logo'], '/');
+  }
+  $params['swfplayer'] = $base_url . '/' . ltrim($params['swfplayer'], '/');
+  $player_params = module_invoke_all('osmplayer_params', $params);
+  $params = array_merge($params, $player_params);
+  $player_params['node'] = &$params['node'];
 
-  // Add the controller connectiions.
-  osmplayer_add_plugins($params, 'controller');
+  // Allow other modules to alter the params.
+  drupal_alter('osmplayer_params', $params, $player_params);
+
+  // Add the core media player files.
+  osmplayer_add_core_files($params);
+
+  // Get the id.
+  $id = $params['id'];
+
+  $output = '';
+
+  // If we wish to show the media player.
+  if ($showPlayer) {
+
+    $output = theme('osmplayer_' . $params['template'], array('params' => $params));
+
+    // Add the playlist connections.
+    $output .= osmplayer_add_connection($params, 'playlist');
+
+    // Add the controller connectiions.
+    $output .= osmplayer_add_connection($params, 'controller');
+
+    // Add the settings.
+    $output .= osmplayer_get_settings_output(array('mediafront' => array($id => $player_params)));
+  }
+
+  // Show the player.
+  return $output;
+}
+
+/**
+ * Adds the core osmplayer static files to the page.
+ * @param type $params
+ */
+function osmplayer_add_core_files($params) {
 
   // Get the player information.
   $info = osmplayer_get_info();
@@ -95,40 +123,64 @@ function osmplayer_get_player($params) {
 
       // Add this plugins resources.
       osmplayer_add_resources($info['plugins'][$name]);
-
-      // Make sure the params now pass the plugin object.
-      $plugin = $name;
-    }
-    else {
-
-      // Make sure this isn't added to the minplayer.
-      unset($params['plugins'][$name]);
     }
   }
+}
 
-  // Get and encode the player parameters.
-  if (!empty($params['logo'])) {
-    $params['logo'] = $base_url . '/' . ltrim($params['logo'], '/');
+/**
+ * Returns the settings output for this media player.
+ *
+ * @param type $settings
+ * @return type
+ */
+function osmplayer_get_settings_output($settings) {
+  return theme('html_tag', array('element' => array(
+    '#tag' => 'script',
+    '#value' => 'jQuery.extend(Drupal.settings, ' . drupal_json_encode($settings) . ");",
+    '#attributes' => array(
+      'type' => 'text/javascript',
+    ),
+  )));
+}
+
+/**
+ * Implementation of hook_colorbox_settings.
+ */
+function osmplayer_colorbox_settings_alter(&$data, $style) {
+
+  // Get the osmplayer preset for colorbox.
+  $preset = variable_get('colorbox_mediafront_preset', '');
+  if (!$preset) {
+    $presets = mediafront_preset_get_presets();
+    $preset = array_shift($presets);
+    $preset = $preset['name'];
   }
-  $params['swfplayer'] = $base_url . '/' . ltrim($params['swfplayer'], '/');
-  $player_params = module_invoke_all('osmplayer_params', $params);
-  $params = array_merge($params, $player_params);
-  $player_params['node'] = &$params['node'];
 
-  // Allow other modules to alter the params.
-  drupal_alter('osmplayer_params', $params, $player_params);
+  // Get the preset parameters and add the core javascript files.
+  $params = mediafront_get_preset_params($preset);
+  $data['maxWidth'] = $data['width'] = intval($params['width']) + 30;
+  $data['maxHeight'] = $data['height'] = intval($params['height']) + 63;
+  osmplayer_add_core_files($params);
+}
 
-  // Get the id.
-  $id = $params['id'];
-
-  // Add the osmplayer settings.
-  drupal_add_js(array('mediafront' => array($id => $player_params)), 'setting');
-
-  // Add the javascript file.
-  drupal_add_js(drupal_get_path('module', 'osmplayer') . '/osmplayer_drupal.js');
-
-  // Show the player.
-  return $showPlayer ? theme('osmplayer_' . $params['template'], array('params' => $params)) : '';
+/**
+ * Add a mediafront player selector to the colorbox settings.
+ *
+ * @param type $form
+ * @param type $form_state
+ */
+function osmplayer_form_colorbox_admin_settings_alter(&$form, $form_state) {
+  $presets = mediafront_preset_get_presets();
+  $options = array();
+  foreach( $presets as $preset ) {
+    $options[$preset['name']] = $preset['name'];
+  }
+  $form['colorbox_custom_settings']['colorbox_mediafront_preset'] = array(
+    '#type' => 'select',
+    '#title' => t('MediaFront Preset'),
+    '#options' => $options,
+    '#default_value' => variable_get('colorbox_mediafront_preset', ''),
+  );
 }
 
 /**
@@ -158,7 +210,9 @@ function osmplayer_add_resources($resources) {
  * @param array $params The settings/parameters for this plugin.
  * @param string $type The plugin type we are adding to the player.
  */
-function osmplayer_add_plugins($params, $type) {
+function osmplayer_add_connection($params, $type) {
+
+  $output = '';
 
   // Check to see if connect is set.
   if (!empty($params['connect'])) {
@@ -169,18 +223,23 @@ function osmplayer_add_plugins($params, $type) {
     if (!empty($connnection)) {
 
       // Add the connection setting.
-      drupal_add_js(array('mediafront_connect' => array($params['id'] => array(
+      $output .= osmplayer_get_settings_output(array('mediafront_connect' => array($params['id'] => array(
         'type' => $type,
         'connect' => $connnection
-      ))), 'setting');
+      ))));
     }
   }
+
+  return $output;
 }
 
 /**
  * Implements hook_library
  */
 function osmplayer_library() {
+
+  // Setup the options for the js inclusion.
+  $options = array('group' => JS_LIBRARY);
 
   // Get the osmplayer path.
   $path = drupal_get_path('module', 'osmplayer') . '/player';
@@ -189,7 +248,7 @@ function osmplayer_library() {
       'title' => 'minPlayer',
       'version' => '0.1',
       'js' => array(
-        $path . '/minplayer/bin/minplayer.compressed.js' => array('group' => JS_LIBRARY)
+        $path . '/minplayer/bin/minplayer.compressed.js' => $options
       ),
       'dependencies' => array(
         array('system', 'ui.slider'),
@@ -199,22 +258,22 @@ function osmplayer_library() {
       'title' => 'minPlayer (Debug Mode)',
       'version' => '0.1',
       'js' => array(
-        $path . '/minplayer/src/minplayer.compatibility.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.flags.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.async.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.plugin.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.display.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.image.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.file.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.playLoader.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.players.base.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.players.html5.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.players.flash.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.players.minplayer.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.players.youtube.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.players.vimeo.js' => array('group' => JS_LIBRARY),
-        $path . '/minplayer/src/minplayer.controller.js' => array('group' => JS_LIBRARY)
+        $path . '/minplayer/src/minplayer.compatibility.js' => $options,
+        $path . '/minplayer/src/minplayer.flags.js' => $options,
+        $path . '/minplayer/src/minplayer.async.js' => $options,
+        $path . '/minplayer/src/minplayer.plugin.js' => $options,
+        $path . '/minplayer/src/minplayer.display.js' => $options,
+        $path . '/minplayer/src/minplayer.js' => $options,
+        $path . '/minplayer/src/minplayer.image.js' => $options,
+        $path . '/minplayer/src/minplayer.file.js' => $options,
+        $path . '/minplayer/src/minplayer.playLoader.js' => $options,
+        $path . '/minplayer/src/minplayer.players.base.js' => $options,
+        $path . '/minplayer/src/minplayer.players.html5.js' => $options,
+        $path . '/minplayer/src/minplayer.players.flash.js' => $options,
+        $path . '/minplayer/src/minplayer.players.minplayer.js' => $options,
+        $path . '/minplayer/src/minplayer.players.youtube.js' => $options,
+        $path . '/minplayer/src/minplayer.players.vimeo.js' => $options,
+        $path . '/minplayer/src/minplayer.controller.js' => $options
       ),
       'dependencies' => array(
         array('system', 'ui.slider')
@@ -224,7 +283,8 @@ function osmplayer_library() {
       'title' => 'OSM Player',
       'version' => '0.1',
       'js' => array(
-        $path . '/bin/osmplayer.compressed.js' => array('group' => JS_LIBRARY)
+        drupal_get_path('module', 'osmplayer') . '/osmplayer_drupal.js' => $options,
+        $path . '/bin/osmplayer.compressed.js' => $options
       ),
       'dependencies' => array(
         array('system', 'ui.slider')
@@ -234,16 +294,17 @@ function osmplayer_library() {
       'title' => 'OSM Player (Debug Mode)',
       'version' => '0.1',
       'js' => array(
-        $path . '/src/osmplayer.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.parser.default.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.parser.youtube.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.parser.rss.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.parser.asx.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.parser.xspf.js' => array('group' => JS_LIBRARY),
-        $path . '/src/iscroll/src/iscroll.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.playlist.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.pager.js' => array('group' => JS_LIBRARY),
-        $path . '/src/osmplayer.teaser.js' => array('group' => JS_LIBRARY),
+        drupal_get_path('module', 'osmplayer') . '/osmplayer_drupal.js' => $options,
+        $path . '/src/osmplayer.js' => $options,
+        $path . '/src/osmplayer.parser.default.js' => $options,
+        $path . '/src/osmplayer.parser.youtube.js' => $options,
+        $path . '/src/osmplayer.parser.rss.js' => $options,
+        $path . '/src/osmplayer.parser.asx.js' => $options,
+        $path . '/src/osmplayer.parser.xspf.js' => $options,
+        $path . '/src/iscroll/src/iscroll.js' => $options,
+        $path . '/src/osmplayer.playlist.js' => $options,
+        $path . '/src/osmplayer.pager.js' => $options,
+        $path . '/src/osmplayer.teaser.js' => $options
       ),
       'dependencies' => array(
         array('osmplayer', 'minplayer_debug')

@@ -756,6 +756,40 @@ function mediafront_tokens($type, $tokens, array $data = array(), array $options
 }
 
 /**
+ * Provided the preset and an additional array of params, this returns the player params.
+ *
+ * @param type $preset
+ * @param type $params
+ * @return string
+ */
+function mediafront_get_preset_params($preset, $params = array()) {
+  $players = &drupal_static(__FUNCTION__);
+  $preset = mediafront_get_preset($preset, (is_array($params) && !empty($params['admin'])));
+  $params = !empty($params) ? !empty($preset['settings']) ? array_merge($preset['settings'], $params) : $params : $preset['settings'];
+  $params['preset'] = $preset['name'];
+  $params['player'] = $preset['player'];
+  $params['protocol'] = 'json';
+  $params['connect'] = !empty($params['connect']) ? $params['connect'] : (!empty($preset['connect']) ? $preset['connect'] : array());
+  if (empty($params['id'])) {
+    $params['id'] = 'mediafront_' . $preset['name'];
+
+    // Find a unique id for this player.
+    $i = 1;
+    $id = $params['id'];
+    while (isset($players[$id])) {
+      $id = $params['id'] . '_' . $i++;
+    }
+
+    // Set the id.
+    $params['id'] = $id;
+  }
+
+  // Add to the players array.
+  $players[$params['id']] = $params['id'];
+  return $params;
+}
+
+/**
  * Returns a media player.
  *
  * @param - This can either be an associative array with the settings,
@@ -779,36 +813,14 @@ function mediafront_tokens($type, $tokens, array $data = array(), array $options
  *
  */
 function mediafront_get_player() {
-  $players = &drupal_static(__FUNCTION__);
   $args = func_get_args();
   $params = $args[0];
 
-
   // If they pass in a string, then this is a preset.
-  // get the preset values.
   if (gettype($params) == 'string') {
-    $preset = mediafront_get_preset($params, (is_array($params) && !empty($params['admin'])));
-    $params = !empty($args[1]) ? !empty($preset['settings']) ? array_merge($preset['settings'], $args[1]) : $args[1] : $preset['settings'];
-    $params['preset'] = $preset['name'];
-    $params['player'] = $preset['player'];
-    $params['protocol'] = 'json';
-    $params['connect'] = !empty($params['connect']) ? $params['connect'] : (!empty($preset['connect']) ? $preset['connect'] : array());
-    if (empty($params['id'])) {
-      $params['id'] = 'mediafront_' . $preset['name'];
-
-      // Find a unique id for this player.
-      $i = 1;
-      $id = $params['id'];
-      while (isset($players[$id])) {
-        $id = $params['id'] . '_' . $i++;
-      }
-
-      // Set the id.
-      $params['id'] = $id;
-    }
-
-    // Add to the players array.
-    $players[$params['id']] = $params['id'];
+    $preset = $params;
+    $params = !empty($args[1]) ? $args[1] : array();
+    $params = mediafront_get_preset_params($preset, $params);
   }
 
   if ($params && is_array($params)) {
