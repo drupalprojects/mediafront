@@ -84,7 +84,7 @@ function osmplayer_get_player($params) {
     $output .= osmplayer_add_connection($params, 'controller');
 
     // Add the settings.
-    $output .= osmplayer_get_settings_output(array('mediafront' => array($id => $player_params)));
+    $output .= osmplayer_get_settings_output('mediafront', array($id => $player_params));
   }
 
   // Show the player.
@@ -133,10 +133,12 @@ function osmplayer_add_core_files($params) {
  * @param type $settings
  * @return type
  */
-function osmplayer_get_settings_output($settings) {
+function osmplayer_get_settings_output($type, $settings) {
+  $js = 'Drupal.settings.' . $type . ' = Drupal.settings.' . $type . ' || {};';
+  $js .= 'jQuery.extend(Drupal.settings.' . $type . ', ' . drupal_json_encode($settings) . ');';
   return theme('html_tag', array('element' => array(
     '#tag' => 'script',
-    '#value' => 'jQuery.extend(Drupal.settings, ' . drupal_json_encode($settings) . ");",
+    '#value' => $js,
     '#attributes' => array(
       'type' => 'text/javascript',
     ),
@@ -223,10 +225,10 @@ function osmplayer_add_connection($params, $type) {
     if (!empty($connnection)) {
 
       // Add the connection setting.
-      $output .= osmplayer_get_settings_output(array('mediafront_connect' => array($params['id'] => array(
+      $output .= osmplayer_get_settings_output('mediafront_connect', array($params['id'] => array(
         'type' => $type,
         'connect' => $connnection
-      ))));
+      )));
     }
   }
 
