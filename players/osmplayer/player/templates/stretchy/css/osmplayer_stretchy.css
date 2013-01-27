@@ -65,6 +65,10 @@
   display:none !important;
 }
 
+.player-ui.nomedia .minplayer-stretchy-controls, .player-ui.nomedia .minplayer-stretchy-big-play, .player-ui.nomedia .minplayer-stretchy-loader {
+  display:none;
+}
+
 .player-ui .minplayer-stretchy-loader {
   width:42px;
   height:10px;
