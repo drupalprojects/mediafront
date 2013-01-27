@@ -94,6 +94,11 @@ class MediaFile {
       return $file->value;
     }
 
+    // If the value is input, then just return it.
+    if (!empty($file->input)) {
+      return $file->input;
+    }
+
     // Return nothing.
     return '';
   }

@@ -8,7 +8,7 @@ function mediafront_field_formatter_info() {
     'mediafront_player' => array(
       'label' => t('MediaFront Player'),
       'description' => t('Play this file using a MediaFront Preset.'),
-      'field types' => array('file', 'text'),
+      'field types' => array('file', 'text', 'youtube'),
       'settings' => array(
         'preset' => ''
       )
