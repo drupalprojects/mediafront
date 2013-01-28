@@ -95,7 +95,7 @@ function osmplayer_get_player($params) {
  * Adds the core osmplayer static files to the page.
  * @param type $params
  */
-function osmplayer_add_core_files($params) {
+function osmplayer_add_core_files(&$params) {
 
   // Get the player information.
   $info = osmplayer_get_info();
@@ -123,6 +123,14 @@ function osmplayer_add_core_files($params) {
 
       // Add this plugins resources.
       osmplayer_add_resources($info['plugins'][$name]);
+
+      // Make sure the params now pass the plugin object.
+      $plugin = $name;
+    }
+    else {
+
+      // Make sure this isn't added to the minplayer.
+      unset($params['plugins'][$name]);
     }
   }
 }
