@@ -169,6 +169,11 @@ function osmplayer_colorbox_settings_alter(&$data, $style) {
 
   // Get the preset parameters and add the core javascript files.
   $params = mediafront_get_preset_params($preset);
+
+  // Set a static width if it is 100%.
+  $params['width'] = ($params['width'] == '100%') ? '500px' : $params['width'];
+
+  // Add the width and height to the modal.
   $data['maxWidth'] = $data['width'] = intval($params['width']) + 30;
   $data['maxHeight'] = $data['height'] = intval($params['height']) + 63;
   osmplayer_add_core_files($params);
