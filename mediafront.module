@@ -722,19 +722,27 @@ function mediafront_token_info() {
     'description' => t('Adds mediafront players using tokens.'),
   );
 
+  // Get the mediafront presets.
   $presets = mediafront_preset_get_presets();
-  foreach ($presets as $preset) {
-    $mediafront[$preset['name']] = array(
-      'name' => 'MediaFront ' . $preset['name'] . ' preset',
-      'description' => $preset['description'],
+
+  // If there are presets, then define some tokens.
+  if ($presets) {
+    foreach ($presets as $preset) {
+      $mediafront[$preset['name']] = array(
+        'name' => 'MediaFront ' . $preset['name'] . ' preset',
+        'description' => $preset['description'],
+      );
+    }
+
+    // Return an array of tokens allowed by this module.
+    return array(
+      'types' => array('mediafront' => $type),
+      'tokens' => array('mediafront' => $mediafront),
     );
   }
 
-  // Return an array of tokens allowed by this module.
-  return array(
-    'types' => array('mediafront' => $type),
-    'tokens' => array('mediafront' => $mediafront),
-  );
+  // Return nothing.
+  return array();
 }
 
 /**
