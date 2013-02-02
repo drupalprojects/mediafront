@@ -121,21 +121,23 @@ function osmplayer_add_core_files(&$params) {
   osmplayer_add_resources($info['resources']);
 
   // Iterate through our plugins.
-  foreach ($params['plugins'] as $name => &$plugin) {
+  if (!empty($params['plugins'])) {
+    foreach ($params['plugins'] as $name => &$plugin) {
 
-    // Make sure this plugin is enabled.
-    if (!empty($plugin) && !empty($info['plugins'][$name])) {
+      // Make sure this plugin is enabled.
+      if (!empty($plugin) && !empty($info['plugins'][$name])) {
 
-      // Add this plugins resources.
-      osmplayer_add_resources($info['plugins'][$name]);
+        // Add this plugins resources.
+        osmplayer_add_resources($info['plugins'][$name]);
 
-      // Make sure the params now pass the plugin object.
-      $plugin = $name;
-    }
-    else {
+        // Make sure the params now pass the plugin object.
+        $plugin = $name;
+      }
+      else {
 
-      // Make sure this isn't added to the minplayer.
-      unset($params['plugins'][$name]);
+        // Make sure this isn't added to the minplayer.
+        unset($params['plugins'][$name]);
+      }
     }
   }
 }
