@@ -1,4 +1,8 @@
 <?php
+
+define('OSMPLAYER_COLORBOX_XPADDING', 30);
+define('OSMPLAYER_COLORBOX_YPADDING', 63);
+
 /**
  * Implements hook_get_player()
  */
@@ -155,48 +159,70 @@ function osmplayer_get_settings_output($type, $settings) {
 }
 
 /**
- * Implementation of hook_colorbox_settings.
+ * Implementation of hook_theme_registry_alter.
  */
-function osmplayer_colorbox_settings_alter(&$data, $style) {
-
-  // Get the osmplayer preset for colorbox.
-  $preset = variable_get('colorbox_mediafront_preset', '');
-  if (!$preset) {
-    $presets = mediafront_preset_get_presets();
-    $preset = array_shift($presets);
-    $preset = $preset['name'];
+function osmplayer_theme_registry_alter(&$theme_registry) {
+  if (!empty($theme_registry['media_colorbox'])) {
+    $theme_registry['media_colorbox']['preprocess functions'][] = 'osmplayer_media_colorbox_preprocess';
   }
-
-  // Get the preset parameters and add the core javascript files.
-  $params = mediafront_get_preset_params($preset);
-
-  // Set a static width if it is 100%.
-  $params['width'] = ($params['width'] == '100%') ? '500px' : $params['width'];
-
-  // Add the width and height to the modal.
-  $data['maxWidth'] = $data['width'] = intval($params['width']) + 30;
-  $data['maxHeight'] = $data['height'] = intval($params['height']) + 63;
-  osmplayer_add_core_files($params);
 }
 
 /**
- * Add a mediafront player selector to the colorbox settings.
- *
- * @param type $form
- * @param type $form_state
+ * Preprocess a colorbox to add a mediafront preset to it.
  */
-function osmplayer_form_colorbox_admin_settings_alter(&$form, $form_state) {
-  $presets = mediafront_preset_get_presets();
-  $options = array();
-  foreach( $presets as $preset ) {
-    $options[$preset['name']] = $preset['name'];
+function osmplayer_media_colorbox_preprocess(&$variables) {
+  static $colorbox_params = null;
+
+  // Get the settings.
+  $settings = &$variables['display_settings'];
+
+  // Set the width and height based on the mediafront preset size.
+  if ($colorbox_params) {
+    $settings['fixed_width'] = intval($colorbox_params['width']) + OSMPLAYER_COLORBOX_XPADDING;
+    $settings['fixed_height'] = intval($colorbox_params['height']) + OSMPLAYER_COLORBOX_YPADDING;
+    return;
   }
-  $form['colorbox_custom_settings']['colorbox_mediafront_preset'] = array(
-    '#type' => 'select',
-    '#title' => t('MediaFront Preset'),
-    '#options' => $options,
-    '#default_value' => variable_get('colorbox_mediafront_preset', ''),
-  );
+
+  $file_id = $variables['file_id'];
+  if($file_id!=NULL){
+    $file = file_load($file_id);
+    $view = file_view_file($file, $settings['colorbox_view_mode'], $variables['langcode']);
+
+    // If the theme is a mediafront_player, then we need to add our files.
+    if ($view['#theme'] == 'mediafront_player') {
+
+      // Get the displays settings.
+      $preset = '';
+      $displays = file_displays($file->type, $settings['colorbox_view_mode']);
+      foreach ($displays as $formatter_type => $display) {
+       if (!empty($display['status'])) {
+         if (!empty($display['settings']['preset'])) {
+           $preset = $display['settings']['preset'];
+         }
+         break;
+       }
+      }
+
+      // If no preset is defined, then get the first one.
+      if (!$preset) {
+        $presets = mediafront_preset_get_presets();
+        $preset = array_shift($presets);
+        $preset = $preset['name'];
+      }
+
+      // Get the preset parameters and add the core javascript files.
+      $params = mediafront_get_preset_params($preset);
+
+      // Set a static width if it is 100%.
+      $params['width'] = ($params['width'] == '100%') ? '500px' : $params['width'];
+
+      // Add the width and height to the modal.
+      $settings['fixed_width'] = intval($params['width']) + OSMPLAYER_COLORBOX_XPADDING;
+      $settings['fixed_height'] = intval($params['height']) + OSMPLAYER_COLORBOX_YPADDING;
+      osmplayer_add_core_files($params);
+      $colorbox_params = $params;
+    }
+  }
 }
 
 /**
