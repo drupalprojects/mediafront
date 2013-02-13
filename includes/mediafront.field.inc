@@ -102,7 +102,7 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
         if (!empty($view)) {
           $include = FALSE;
           foreach ($view->field as $view_field) {
-            if ($view_field->field == $name) {
+            if (($view_field->field == $name) && isset($view_field->options['mediafront'])) {
               $include = TRUE;
               $options = $view_field->options['mediafront'];
               break;
