@@ -1386,14 +1386,14 @@ minplayer.lock = false;
  */
 minplayer.plugin = function(name, context, options, queue) {
 
+  // Make sure we have some options.
+  options = options || {};
+
   /** The name of this plugin. */
   this.name = name;
 
   /** The ready flag. */
   this.pluginReady = false;
-
-  /** The options for this plugin. */
-  this.options = options || {};
 
   /** The event queue. */
   this.queue = queue || {};
@@ -1413,6 +1413,15 @@ minplayer.plugin = function(name, context, options, queue) {
     /** Keep track of the context. */
     this.context = jQuery(context);
 
+    // Initialize the default options.
+    var defaults = {};
+
+    // Get the default options.
+    this.defaultOptions(defaults);
+
+    /** The options for this plugin. */
+    this.options = jQuery.extend(defaults, options);
+
     // Initialize this plugin.
     this.initialize();
   }
@@ -1425,6 +1434,14 @@ minplayer.plugin.prototype.initialize = function() {
 
   // Construct this plugin.
   this.construct();
+};
+
+/**
+ * Get the default options for this plugin.
+ *
+ * @param {object} options The default options for this plugin.
+ */
+minplayer.plugin.prototype.defaultOptions = function(options) {
 };
 
 /**
@@ -2554,39 +2571,46 @@ minplayer.prototype = new minplayer.display();
 minplayer.prototype.constructor = minplayer;
 
 /**
+ * Get the default options for this plugin.
+ *
+ * @param {object} options The default options for this plugin.
+ */
+minplayer.prototype.defaultOptions = function(options) {
+
+  // Assign the default options.
+  options.id = 'player';
+  options.build = false;
+  options.wmode = 'transparent';
+  options.preload = true;
+  options.autoplay = false;
+  options.autoload = true;
+  options.loop = false;
+  options.width = '100%';
+  options.height = '350px';
+  options.debug = false;
+  options.volume = 80;
+  options.files = null;
+  options.file = '';
+  options.preview = '';
+  options.attributes = {};
+  options.plugins = {};
+  options.logo = '';
+  options.link = '';
+  options.duration = 0;
+
+  // Allow them to provide arguments based off of the DOM attributes.
+  jQuery.each(this.context[0].attributes, function(index, attr) {
+    options[attr.name] = attr.value;
+  });
+
+  // Set the parent options.
+  minplayer.display.prototype.defaultOptions.call(this, options);
+};
+
+/**
  * @see minplayer.plugin.construct
  */
 minplayer.prototype.construct = function() {
-
-  // Allow them to provide arguments based off of the DOM attributes.
-  jQuery.each(this.context[0].attributes, (function(player) {
-    return function(index, attr) {
-      player.options[attr.name] = player.options[attr.name] || attr.value;
-    };
-  })(this));
-
-  // Make sure we provide default options...
-  this.options = jQuery.extend({
-    id: 'player',
-    build: false,
-    wmode: 'transparent',
-    preload: true,
-    autoplay: false,
-    autoload: true,
-    loop: false,
-    width: '100%',
-    height: '350px',
-    debug: false,
-    volume: 80,
-    files: null,
-    file: '',
-    preview: '',
-    attributes: {},
-    plugins: {},
-    logo: '',
-    link: '',
-    duration: 0
-  }, this.options);
 
   // Call the minplayer display constructor.
   minplayer.display.prototype.construct.call(this);
@@ -6310,14 +6334,19 @@ minplayer.controller.prototype.getElements = function() {
 };
 
 /**
+ * Get the default options for this plugin.
+ *
+ * @param {object} options The default options for this plugin.
+ */
+minplayer.controller.prototype.defaultOptions = function(options) {
+  options.disptime = 0;
+  minplayer.display.prototype.defaultOptions.call(this, options);
+};
+
+/**
  * @see minplayer.plugin#construct
  */
 minplayer.controller.prototype.construct = function() {
-
-  // Make sure we provide default options...
-  this.options = jQuery.extend({
-    disptime: 0
-  }, this.options);
 
   // Call the minplayer plugin constructor.
   minplayer.display.prototype.construct.call(this);
@@ -6680,21 +6709,22 @@ osmplayer.prototype.create = function(name, base, context) {
 };
 
 /**
+ * Get the default options for this plugin.
+ *
+ * @param {object} options The default options for this plugin.
+ */
+osmplayer.prototype.defaultOptions = function(options) {
+  options.playlist = '';
+  options.node = {};
+  options.link = 'http://www.mediafront.org';
+  options.logo = 'http://mediafront.org/assets/osmplayer/logo.png';
+  minplayer.prototype.defaultOptions.call(this, options);
+};
+
+/**
  * @see minplayer.plugin.construct
  */
 osmplayer.prototype.construct = function() {
-
-  // Make sure we provide default options...
-  this.options = jQuery.extend({
-    playlist: '',
-    node: {},
-    link: 'http://www.mediafront.org'
-  }, this.options);
-
-  // Provide a default logo if one isn't provided.
-  if (!this.options.logo) {
-    this.options.logo = 'http://mediafront.org/assets/osmplayer/logo.png';
-  }
 
   // Call the minplayer display constructor.
   minplayer.prototype.construct.call(this);
@@ -7250,22 +7280,27 @@ osmplayer.playlist.prototype = new minplayer.display();
 osmplayer.playlist.prototype.constructor = osmplayer.playlist;
 
 /**
+ * Returns the default options for this plugin.
+ *
+ * @param {object} options The default options for this plugin.
+ */
+osmplayer.playlist.prototype.defaultOptions = function(options) {
+  options.vertical = true;
+  options.playlist = '';
+  options.pageLimit = 10;
+  options.autoNext = true;
+  options.shuffle = false;
+  options.loop = false;
+  options.hysteresis = 40;
+  options.scrollSpeed = 20;
+  options.scrollMode = 'auto';
+  minplayer.display.prototype.defaultOptions.call(this, options);
+};
+
+/**
  * @see minplayer.plugin#construct
  */
 osmplayer.playlist.prototype.construct = function() {
-
-  // Make sure we provide default options...
-  this.options = jQuery.extend({
-    vertical: true,
-    playlist: '',
-    pageLimit: 10,
-    autoNext: true,
-    shuffle: false,
-    loop: false,
-    hysteresis: 40,
-    scrollSpeed: 20,
-    scrollMode: 'auto'
-  }, this.options);
 
   /** The nodes within this playlist. */
   this.nodes = [];

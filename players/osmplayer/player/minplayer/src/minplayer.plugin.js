@@ -21,14 +21,14 @@ minplayer.lock = false;
  */
 minplayer.plugin = function(name, context, options, queue) {
 
+  // Make sure we have some options.
+  options = options || {};
+
   /** The name of this plugin. */
   this.name = name;
 
   /** The ready flag. */
   this.pluginReady = false;
-
-  /** The options for this plugin. */
-  this.options = options || {};
 
   /** The event queue. */
   this.queue = queue || {};
@@ -48,6 +48,15 @@ minplayer.plugin = function(name, context, options, queue) {
     /** Keep track of the context. */
     this.context = jQuery(context);
 
+    // Initialize the default options.
+    var defaults = {};
+
+    // Get the default options.
+    this.defaultOptions(defaults);
+
+    /** The options for this plugin. */
+    this.options = jQuery.extend(defaults, options);
+
     // Initialize this plugin.
     this.initialize();
   }
@@ -60,6 +69,14 @@ minplayer.plugin.prototype.initialize = function() {
 
   // Construct this plugin.
   this.construct();
+};
+
+/**
+ * Get the default options for this plugin.
+ *
+ * @param {object} options The default options for this plugin.
+ */
+minplayer.plugin.prototype.defaultOptions = function(options) {
 };
 
 /**

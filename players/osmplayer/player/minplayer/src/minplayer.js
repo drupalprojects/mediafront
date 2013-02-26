@@ -59,39 +59,46 @@ minplayer.prototype = new minplayer.display();
 minplayer.prototype.constructor = minplayer;
 
 /**
+ * Get the default options for this plugin.
+ *
+ * @param {object} options The default options for this plugin.
+ */
+minplayer.prototype.defaultOptions = function(options) {
+
+  // Assign the default options.
+  options.id = 'player';
+  options.build = false;
+  options.wmode = 'transparent';
+  options.preload = true;
+  options.autoplay = false;
+  options.autoload = true;
+  options.loop = false;
+  options.width = '100%';
+  options.height = '350px';
+  options.debug = false;
+  options.volume = 80;
+  options.files = null;
+  options.file = '';
+  options.preview = '';
+  options.attributes = {};
+  options.plugins = {};
+  options.logo = '';
+  options.link = '';
+  options.duration = 0;
+
+  // Allow them to provide arguments based off of the DOM attributes.
+  jQuery.each(this.context[0].attributes, function(index, attr) {
+    options[attr.name] = attr.value;
+  });
+
+  // Set the parent options.
+  minplayer.display.prototype.defaultOptions.call(this, options);
+};
+
+/**
  * @see minplayer.plugin.construct
  */
 minplayer.prototype.construct = function() {
-
-  // Allow them to provide arguments based off of the DOM attributes.
-  jQuery.each(this.context[0].attributes, (function(player) {
-    return function(index, attr) {
-      player.options[attr.name] = player.options[attr.name] || attr.value;
-    };
-  })(this));
-
-  // Make sure we provide default options...
-  this.options = jQuery.extend({
-    id: 'player',
-    build: false,
-    wmode: 'transparent',
-    preload: true,
-    autoplay: false,
-    autoload: true,
-    loop: false,
-    width: '100%',
-    height: '350px',
-    debug: false,
-    volume: 80,
-    files: null,
-    file: '',
-    preview: '',
-    attributes: {},
-    plugins: {},
-    logo: '',
-    link: '',
-    duration: 0
-  }, this.options);
 
   // Call the minplayer display constructor.
   minplayer.display.prototype.construct.call(this);
