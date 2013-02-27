@@ -1,5 +1,5 @@
 /*!
- * iScroll v4.2.4 ~ Copyright (c) 2012 Matteo Spinelli, http://cubiq.org
+ * iScroll v4.2.5 ~ Copyright (c) 2012 Matteo Spinelli, http://cubiq.org
  * Released under MIT license, http://cubiq.org/license
  */
 (function(window, doc){
@@ -376,8 +376,8 @@ iScroll.prototype = {
 			if (that.options.useTransform) {
 				// Very lame general purpose alternative to CSSMatrix
 				matrix = getComputedStyle(that.scroller, null)[transform].replace(/[^0-9\-.,]/g, '').split(',');
-				x = +matrix[4];
-				y = +matrix[5];
+				x = +(matrix[12] || matrix[4]);
+				y = +(matrix[13] || matrix[5]);
 			} else {
 				x = +getComputedStyle(that.scroller, null).left.replace(/[^0-9-]/g, '');
 				y = +getComputedStyle(that.scroller, null).top.replace(/[^0-9-]/g, '');
@@ -5333,6 +5333,50 @@ minplayer.players.youtube.getImage = function(file, type, callback) {
 };
 
 /**
+ * Parse a single playlist node.
+ *
+ * @param {object} item The youtube item.
+ * @return {object} The mediafront node.
+ */
+minplayer.players.youtube.parseNode = function(item) {
+  var node = (typeof item.video !== 'undefined') ? item.video : item;
+  return {
+    title: node.title,
+    description: node.description,
+    mediafiles: {
+      image: {
+        'thumbnail': {
+          path: node.thumbnail.sqDefault
+        },
+        'image': {
+          path: node.thumbnail.hqDefault
+        }
+      },
+      media: {
+        'media': {
+          player: 'youtube',
+          id: node.id
+        }
+      }
+    }
+  };
+};
+
+/**
+ * Returns information about this youtube video.
+ *
+ * @param {object} file The file to load.
+ * @param {function} callback Called when the node is loaded.
+ */
+minplayer.players.youtube.getNode = function(file, callback) {
+  var url = 'https://gdata.youtube.com/feeds/api/videos/' + file.id;
+  url += '?v=2&alt=jsonc';
+  jQuery.get(url, function(data) {
+    callback(minplayer.players.youtube.parseNode(data.data));
+  });
+};
+
+/**
  * Translates the player state for the YouTube API player.
  *
  * @param {number} playerState The YouTube player state.
@@ -5714,6 +5758,61 @@ minplayer.players.vimeo.getMediaId = function(file) {
 };
 
 /**
+ * Parse a single playlist node.
+ *
+ * @param {object} item The youtube item.
+ * @return {object} The mediafront node.
+ */
+minplayer.players.vimeo.parseNode = function(item) {
+  return {
+    title: item.title,
+    description: item.description,
+    mediafiles: {
+      image: {
+        'thumbnail': {
+          path: item.thumbnail_small
+        },
+        'image': {
+          path: item.thumbnail_large
+        }
+      },
+      media: {
+        'media': {
+          player: 'vimeo',
+          id: item.id
+        }
+      }
+    }
+  };
+};
+
+/** Keep track of loaded nodes from vimeo. */
+minplayer.players.vimeo.nodes = {};
+
+/**
+ * Returns information about this youtube video.
+ *
+ * @param {object} file The file to get the node from.
+ * @param {function} callback Callback when the node is loaded.
+ */
+minplayer.players.vimeo.getNode = function(file, callback) {
+  if (minplayer.players.vimeo.nodes.hasOwnProperty(file.id)) {
+    callback(minplayer.players.vimeo.nodes[file.id]);
+  }
+  else {
+    jQuery.ajax({
+      url: 'http://vimeo.com/api/v2/video/' + file.id + '.json',
+      dataType: 'jsonp',
+      success: function(data) {
+        var node = minplayer.players.vimeo.parseNode(data[0]);
+        minplayer.players.vimeo.nodes[file.id] = node;
+        callback(node);
+      }
+    });
+  }
+};
+
+/**
  * Returns a preview image for this media player.
  *
  * @param {object} file A {@link minplayer.file} object.
@@ -5721,12 +5820,8 @@ minplayer.players.vimeo.getMediaId = function(file) {
  * @param {function} callback Called when the image is retrieved.
  */
 minplayer.players.vimeo.getImage = function(file, type, callback) {
-  jQuery.ajax({
-    url: 'http://vimeo.com/api/v2/video/' + file.id + '.json',
-    dataType: 'jsonp',
-    success: function(data) {
-      callback(data[0].thumbnail_large);
-    }
+  minplayer.players.vimeo.getNode(file, function(node) {
+    callback(node.mediafiles.image.image);
   });
 };
 
@@ -6953,6 +7048,26 @@ osmplayer.prototype.playNext = function() {
 };
 
 /**
+ * Returns a node.
+ *
+ * @param {object} node The node to get.
+ * @param {function} callback Called when the node is retrieved.
+ */
+osmplayer.getNode = function(node, callback) {
+  if (node && node.mediafiles && node.mediafiles.media) {
+    var mediaFile = minplayer.getMediaFile(node.mediafiles.media.media);
+    if (mediaFile) {
+      var player = minplayer.players[mediaFile.player];
+      if (player && (typeof player.getNode === 'function')) {
+        player.getNode(mediaFile, function(node) {
+          callback(node);
+        });
+      }
+    }
+  }
+};
+
+/**
  * Returns an image provided image array.
  *
  * @param {object} mediafiles The mediafiles to search within.
@@ -7086,31 +7201,11 @@ osmplayer.parser.youtube = {
     };
 
     // Iterate through the items and parse it.
-    var item = null, node = null;
+    var node = null;
     for (var index in data.items) {
       if (data.items.hasOwnProperty(index)) {
-        item = data.items[index];
-        node = (typeof item.video !== 'undefined') ? item.video : item;
-        playlist.nodes.push({
-          title: node.title,
-          description: node.description,
-          mediafiles: {
-            image: {
-              'thumbnail': {
-                path: node.thumbnail.sqDefault
-              },
-              'image': {
-                path: node.thumbnail.hqDefault
-              }
-            },
-            media: {
-              'media': {
-                player: 'youtube',
-                id: node.id
-              }
-            }
-          }
-        });
+        node = minplayer.players.youtube.parseNode(data.items[index]);
+        playlist.nodes.push(node);
       }
     }
 
@@ -7164,22 +7259,45 @@ osmplayer.parser.rss = {
   // Parse an RSS item.
   addRSSItem: function(playlist, item) {
     playlist.total_rows++;
-    playlist.nodes.push({
-      title: item.find('title').text(),
-      description: item.find('annotation').text(),
-      mediafiles: {
+    var node = {}, title = '', desc = '', img = '', media = '';
+
+    // Get the title.
+    title = item.find('title');
+    if (title.length) {
+      node.title = title.text();
+    }
+
+    // Get the description.
+    desc = item.find('annotation');
+    if (desc.length) {
+      node.description = desc.text();
+    }
+
+    // Add the media files.
+    node.mediafiles = {};
+
+    // Get the image.
+    img = item.find('image');
+    if (img.length) {
+      node.mediafiles.image = {
         image: {
-          'image': {
-            path: item.find('image').text()
-          }
-        },
-        media: {
-          'media': {
-            path: item.find('location').text()
-          }
+          path: img.text()
         }
-      }
-    });
+      };
+    }
+
+    // Get the media.
+    media = item.find('location');
+    if (media.length) {
+      node.mediafiles.media = {
+        media: {
+          path: media.text()
+        }
+      };
+    }
+
+    // Add this node to the playlist.
+    playlist.nodes.push(node);
   }
 };
 /** The osmplayer namespace. */
@@ -7554,7 +7672,8 @@ osmplayer.playlist.prototype.set = function(playlist, loadIndex) {
     this.currentItem = 0;
 
     // Show or hide the next page if there is or is not a next page.
-    if (((this.page + 1) * this.options.pageLimit) >= this.totalItems) {
+    if ((((this.page + 1) * this.options.pageLimit) >= this.totalItems) ||
+        (this.totalItems == playlist.nodes.length)) {
       this.pager.nextPage.hide();
     }
     else {
@@ -7932,11 +8051,20 @@ osmplayer.teaser.prototype.setNode = function(node) {
 
   // Set the title of the teaser.
   if (this.elements.title) {
-    this.elements.title.text(node.title);
+    if (node.title) {
+      this.elements.title.text(node.title);
+    }
+    else {
+      osmplayer.getNode(node, (function(teaser) {
+        return function(node) {
+          teaser.elements.title.text(node.title);
+        };
+      })(this));
+    }
   }
 
   // Load the thumbnail image if it exists.
-  if (node.mediafiles && node.mediafiles.image) {
+  if (node.mediafiles) {
     osmplayer.getImage(node.mediafiles, 'thumbnail', (function(teaser) {
       return function(image) {
         if (image && teaser.elements.image) {

@@ -44,11 +44,20 @@ osmplayer.teaser.prototype.setNode = function(node) {
 
   // Set the title of the teaser.
   if (this.elements.title) {
-    this.elements.title.text(node.title);
+    if (node.title) {
+      this.elements.title.text(node.title);
+    }
+    else {
+      osmplayer.getNode(node, (function(teaser) {
+        return function(node) {
+          teaser.elements.title.text(node.title);
+        };
+      })(this));
+    }
   }
 
   // Load the thumbnail image if it exists.
-  if (node.mediafiles && node.mediafiles.image) {
+  if (node.mediafiles) {
     osmplayer.getImage(node.mediafiles, 'thumbnail', (function(teaser) {
       return function(image) {
         if (image && teaser.elements.image) {
