@@ -364,6 +364,12 @@
   display: none;
   opacity: 0;
 }
+.player-ui.controller-only .minplayer-controls-volume-horizontal .minplayer-stretchy-volume-slider {
+  height: 7px;
+  width: 105px;
+  top: 8px;
+  left: 34px !important;
+}
 
 .player-ui .minplayer-controls-volume-horizontal .minplayer-stretchy-volume-slider {
   height: 7px;
@@ -420,6 +426,10 @@
 
 .player-ui .minplayer-stretchy-volume-unmute {
   display: none;
+}
+
+.player-ui.controller-only .minplayer-stretchy-fullscreen {
+  display: none !important;
 }
 
 /* Fullscreen button */
