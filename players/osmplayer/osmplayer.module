@@ -317,6 +317,7 @@ function osmplayer_library() {
         $path . '/minplayer/src/minplayer.players.minplayer.js' => $options,
         $path . '/minplayer/src/minplayer.players.youtube.js' => $options,
         $path . '/minplayer/src/minplayer.players.vimeo.js' => $options,
+        $path . '/minplayer/src/minplayer.players.dailymotion.js' => $options,
         $path . '/minplayer/src/minplayer.controller.js' => $options
       ),
       'dependencies' => array(
