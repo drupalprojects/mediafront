@@ -711,7 +711,7 @@ function mediafront_get_node($type, $entity, $fields) {
     }
 
     // Always include the node title.
-    if ($type == 'node') {
+    if ($type == 'node' && !empty($entity->title)) {
       $node['title'] = $entity->title;
     }
 
