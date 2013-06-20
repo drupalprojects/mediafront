@@ -25,17 +25,44 @@ function mediafront_permission() {
  */
 function mediafront_menu() {
 
+  $items = array();
+
   // Gets a JSON playlist for any view.
-  $items['mediafront_getplaylist'] = array(
-    'page callback' => 'mediafront_get_playlist_json',
-    'type' => MENU_CALLBACK,
-    'page arguments' => array(1, 2, 3),
-    'access arguments' => array('access content')
-  );
+  // This menu routes to a page that uses views -> we make sure views is enabled
+  if (module_exists('views')) {
+    $items['mediafront_getplaylist'] = array(
+      'page callback' => 'mediafront_get_playlist_json',
+      'type' => MENU_CALLBACK,
+      'page arguments' => array(1, 2, 3),
+      'access arguments' => array('access content')
+    );
+  }
 
   $items = array_merge($items, mediafront_preset_menu());
 
   return $items;
+}
+
+/**
+ * Implements hook_modules_enabled().
+ */
+function mediafront_modules_enabled($modules) {
+  // If views enabled, set menu as needed to be rebuilt
+  // The availability of certain menu items depends on views being enabled or not
+  if (in_array('views', $modules)) {
+    variable_set('menu_rebuild_needed', TRUE);
+  }
+}
+
+/**
+ * Implements hook_modules_disabled().
+ */
+function mediafront_modules_disabled($modules) {
+  // If views disabled, set menu as needed to be rebuilt
+  // The availability of certain menu items depends on views being enabled or not
+  if (in_array('views', $modules)) {
+    variable_set('menu_rebuild_needed', TRUE);
+  }
 }
 
 /**
