@@ -57,7 +57,7 @@ function mediafront_form_views_ui_config_item_form_alter(&$form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Link to Player'),
     '#description' => t('Check if you would like for this field to dynamically link to the MediaFront player attached to this view.'),
-    '#default_value' => $options['link_to_player']
+    '#default_value' => !empty($options['link_to_player']),
   );
 
   // Add the field select form.
