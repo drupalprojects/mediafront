@@ -222,11 +222,13 @@ function mediafront_get_players() {
  * @param $player
  */
 function mediafront_get_player_params( $player ) {
+  $settings = array();
   $get_params = $player . '_get_player_params';
-  if( function_exists( $get_params ) ) {
-    return $get_params();
+  if (function_exists($get_params)) {
+    $settings = $get_params();
   }
-  return array();
+  drupal_alter('mediafront_player_params', $settings);
+  return $settings;
 }
 
 /**
@@ -234,11 +236,13 @@ function mediafront_get_player_params( $player ) {
  * @param $player
  */
 function mediafront_get_player_settings( $player ) {
+  $settings = array();
   $get_settings = $player . '_get_player_settings';
-  if( function_exists( $get_settings ) ) {
-    return $get_settings();
+  if (function_exists($get_settings)) {
+    $settings = $get_settings();
   }
-  return array();
+  drupal_alter('mediafront_player_settings', $settings);
+  return $settings;
 }
 
 /**
@@ -732,7 +736,7 @@ function mediafront_get_node($type, $entity, $fields) {
   }
 
   // Allow other modules the opportunity to alter the node.
-  drupal_alter('mediafront_node', $entity, $fields, $node);
+  drupal_alter('mediafront_node', $entity, $fields, $node, $type);
 
   // Return the node object.
   return $node;

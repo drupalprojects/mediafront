@@ -145,6 +145,9 @@ function mediafront_preset_form($form, &$form_state, $preset) {
    // Get all of the settings for this player.
    $preset['settings'] = mediafront_get_settings($preset['player'], $params);
 
+   // Store the preset in the form.
+   $form['#preset'] = $preset;
+
    $form['settings'] = array(
       '#type' => 'fieldset',
       '#title' => t('Preset Settings'),

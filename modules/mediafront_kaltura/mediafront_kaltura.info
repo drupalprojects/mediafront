@@ -1,0 +1,8 @@
+name = MediaFront Kaltura
+description = This adds MediaFront support to the Kaltura module.
+core = 7.x
+package = MediaFront
+php = 5.2.4
+dependencies[] = mediafront
+dependencies[] = osmplayer
+dependencies[] = field_kaltura
