@@ -4,11 +4,13 @@
  * Implements hook_field_formatter_info().
  */
 function mediafront_field_formatter_info() {
+  $field_types = array('file', 'text', 'youtube');
+  drupal_alter('mediafront_field_types', $field_types);
   return array(
     'mediafront_player' => array(
       'label' => t('MediaFront Player'),
       'description' => t('Play this file using a MediaFront Preset.'),
-      'field types' => array('file', 'text', 'youtube'),
+      'field types' => $field_types,
       'settings' => array(
         'preset' => ''
       )
