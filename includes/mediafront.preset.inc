@@ -292,7 +292,7 @@ function mediafront_preset_array_flatten($array,$return=array()) {
       $return = mediafront_preset_array_flatten($value, $return);
     }
     else {
-      $return[$key] = $value;
+      $return[$key] = check_plain($value);
     }
   }
   return $return;
@@ -304,14 +304,14 @@ function mediafront_preset_array_flatten($array,$return=array()) {
 function mediafront_preset_submit($form, &$form_state) {
   $preset = array();
   if( isset($form_state['values']['pid']) ) {
-    $preset['pid'] = $form_state['values']['pid'];
+    $preset['pid'] = check_plain($form_state['values']['pid']);
   }
-  $preset['name'] = $form_state['values']['name'];
-  $preset['description'] = $form_state['values']['description'];
-  $preset['player'] = $form_state['values']['player'];
+  $preset['name'] = check_plain($form_state['values']['name']);
+  $preset['description'] = check_plain($form_state['values']['description']);
+  $preset['player'] = check_plain($form_state['values']['player']);
   $preset['connect'] = array(
-     'iscontroller' => isset($form_state['values']['iscontroller']) ? $form_state['values']['iscontroller'] : array(),
-     'isplaylist' => isset($form_state['values']['isplaylist']) ? $form_state['values']['isplaylist'] : array()
+     'iscontroller' => isset($form_state['values']['iscontroller']) ? check_plain($form_state['values']['iscontroller']) : array(),
+     'isplaylist' => isset($form_state['values']['isplaylist']) ? check_plain($form_state['values']['isplaylist']) : array()
   );
 
   // Now set the player settings that are only different from the defaults.
