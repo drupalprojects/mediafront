@@ -1,5 +1,5 @@
 <div id="<?php print $params['id']; ?>" class="osmplayer-<?php print $params['template']; ?> player-ui">
-  <div id="mediaplayer" style="height:<?php print filter_xss($params['height']); ?>">
+  <div id="mediaplayer" style="height:<?php print $params['height']; ?>">
     <div id="mediaplayer_node">
       <div id="mediaplayer_minplayer">
         <div id="mediaplayer_play_loader">

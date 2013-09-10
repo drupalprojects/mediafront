@@ -1,4 +1,4 @@
-<div id="<?php print $params['id']; ?>" class="media-player" style="width:<?php print filter_xss($params['width']); ?>; height:<?php print filter_xss($params['height']); ?>;">
+<div id="<?php print $params['id']; ?>" class="media-player" style="width:<?php print $params['width']; ?>; height:<?php print $params['height']; ?>;">
   <div class="media-player-error"></div>
   <div class="media-player-controls">
     <div class="media-player-controls-left">

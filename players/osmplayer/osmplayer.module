@@ -77,6 +77,13 @@ function osmplayer_get_player($params) {
 
   $output = '';
 
+  // Iterate through each parameter and filter it for output.
+  foreach ($params as $param => &$value) {
+    if (gettype($value) == 'string') {
+      $value = check_plain($value);
+    }
+  }
+
   // If we wish to show the media player.
   if ($showPlayer) {
 
