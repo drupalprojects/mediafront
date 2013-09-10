@@ -30,6 +30,13 @@ function osmplayer_get_player($params) {
   else {
     $showPlayer |= isset($params['node']) && $params['node'];
   }
+  
+  // Iterate through each parameter and filter it for output.
+  foreach ($params as $param => &$value) {
+    if (gettype($value) == 'string') {
+      $value = check_plain($value);
+    }
+  }  
 
   // Show the player.
   return $showPlayer ? theme('osmplayer_' . $template, array('params' => $params)) : '';
