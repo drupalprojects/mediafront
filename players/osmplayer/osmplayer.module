@@ -266,7 +266,7 @@ function osmplayer_add_connection($params, $type) {
   $output = '';
 
   // Check to see if connect is set.
-  if (!empty($params['connect'])) {
+  if (!empty($params['connect']) && !empty($params['connect']['is' . $type])) {
 
     $connnection = array_filter($params['connect']['is' . $type]);
 
