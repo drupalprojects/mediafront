@@ -56,6 +56,10 @@ function mediafront_kaltura_library_alter(&$libraries, $module) {
  * @param type $node
  */
 function mediafront_kaltura_osmplayer_params_alter($settings, &$player_params) {
+
+  // Always provide the uiConfId as the kaltura player setting.
+  $player_params['uiConfId'] = $settings['kaltura_player'];
+
   if (!empty($player_params['node']['mediafiles']['media'])) {
     foreach ($player_params['node']['mediafiles']['media'] as &$media) {
       foreach ($media as &$media_type) {
