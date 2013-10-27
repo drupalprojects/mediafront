@@ -389,46 +389,41 @@ minplayer.players.youtube.prototype.setVolume = function(vol, callback) {
 /**
  * @see minplayer.players.base#getVolume
  */
-minplayer.players.youtube.prototype.getVolume = function(callback) {
-  this.getValue('getVolume', callback);
+minplayer.players.youtube.prototype._getVolume = function(callback) {
+  callback(this.player.getVolume());
 };
 
 /**
  * @see minplayer.players.base#getDuration.
  */
-minplayer.players.youtube.prototype.getDuration = function(callback) {
-  if (this.options.duration) {
-    callback(this.options.duration);
-  }
-  else {
-    this.getValue('getDuration', callback);
-  }
+minplayer.players.youtube.prototype._getDuration = function(callback) {
+  callback(this.player.getDuration());
 };
 
 /**
  * @see minplayer.players.base#getCurrentTime
  */
-minplayer.players.youtube.prototype.getCurrentTime = function(callback) {
-  this.getValue('getCurrentTime', callback);
+minplayer.players.youtube.prototype._getCurrentTime = function(callback) {
+  callback(this.player.getCurrentTime());
 };
 
 /**
  * @see minplayer.players.base#getBytesStart.
  */
-minplayer.players.youtube.prototype.getBytesStart = function(callback) {
-  this.getValue('getVideoStartBytes', callback);
+minplayer.players.youtube.prototype._getBytesStart = function(callback) {
+  callback(this.player.getVideoStartBytes());
 };
 
 /**
  * @see minplayer.players.base#getBytesLoaded.
  */
-minplayer.players.youtube.prototype.getBytesLoaded = function(callback) {
-  this.getValue('getVideoBytesLoaded', callback);
+minplayer.players.youtube.prototype._getBytesLoaded = function(callback) {
+  callback(this.player.getVideoBytesLoaded());
 };
 
 /**
  * @see minplayer.players.base#getBytesTotal.
  */
-minplayer.players.youtube.prototype.getBytesTotal = function(callback) {
-  this.getValue('getVideoBytesTotal', callback);
+minplayer.players.youtube.prototype._getBytesTotal = function(callback) {
+  callback(this.player.getVideoBytesTotal());
 };

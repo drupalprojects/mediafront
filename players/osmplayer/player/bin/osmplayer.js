@@ -3644,6 +3644,17 @@ minplayer.players.base.prototype.getElements = function() {
   });
 };
 
+
+/**
+ * Get the default options for this plugin.
+ *
+ * @param {object} options The default options for this plugin.
+ */
+minplayer.players.base.prototype.defaultOptions = function(options) {
+  options.range = {min: 0, max: 0};
+  minplayer.display.prototype.defaultOptions.call(this, options);
+};
+
 /**
  * Get the priority of this media player.
  *
@@ -3813,6 +3824,7 @@ minplayer.players.base.prototype.clear = function() {
 minplayer.players.base.prototype.reset = function() {
 
   // The duration of the player.
+  this.realDuration = 0;
   this.duration = new minplayer.async();
 
   // The current play time of the player.
@@ -3941,41 +3953,86 @@ minplayer.players.base.prototype.onReady = function() {
 };
 
 /**
- * Returns the amount of seconds you would like to seek.
+ * Parses a time value into seconds.
+ *
+ * @param string time
+ *   The time to parse to seconds.
+ *
+ * @returns {number}
+ *   The number of seconds this time represents.
+ */
+minplayer.players.base.prototype.parseTime = function(time) {
+  var seconds = 0, minutes = 0, hours = 0;
+
+  if (!time) {
+    return 0;
+  }
+
+  // Convert to string if we need to.
+  if (typeof time != 'string') {
+    time = String(time);
+  }
+
+  // Get the seconds.
+  seconds = time.match(/([0-9]+)s/i);
+  if (seconds) {
+    seconds = parseInt(seconds[1], 10);
+  }
+
+  // Get the minutes.
+  minutes = time.match(/([0-9]+)m/i);
+  if (minutes) {
+    seconds += (parseInt(minutes[1], 10) * 60);
+  }
+
+  // Get the hours.
+  hours = time.match(/([0-9]+)h/i);
+  if (hours) {
+    seconds += (parseInt(hours[1], 10) * 3600);
+  }
+
+  // If no seconds were found, then just use the raw value.
+  if (!seconds) {
+    seconds = time;
+  }
+
+  // Return the seconds from the time.
+  return seconds;
+};
+
+/**
+ * Sets the start and stop points for the media.
  *
  * @return {number} The number of seconds we should seek.
  */
-minplayer.players.base.prototype.getSeek = function() {
-  var seconds = 0, minutes = 0, hours = 0;
-
-  // See if they would like to seek.
-  if (minplayer.urlVars && minplayer.urlVars.seek) {
-
-    // Get the seconds.
-    seconds = minplayer.urlVars.seek.match(/([0-9])s/i);
-    if (seconds) {
-      seconds = parseInt(seconds[1], 10);
-    }
-
-    // Get the minutes.
-    minutes = minplayer.urlVars.seek.match(/([0-9])m/i);
-    if (minutes) {
-      seconds += (parseInt(minutes[1], 10) * 60);
-    }
-
-    // Get the hours.
-    hours = minplayer.urlVars.seek.match(/([0-9])h/i);
-    if (hours) {
-      seconds += (parseInt(hours[1], 10) * 3600);
-    }
-
-    // If no seconds were found, then just use the raw value.
-    if (!seconds) {
-      seconds = minplayer.urlVars.seek;
-    }
+minplayer.players.base.prototype.setStartStop = function() {
+  if (this.startTime) {
+    return this.startTime;
   }
 
-  return seconds;
+  this.startTime = 0;
+
+  // First check the url for the seek time.
+  if (minplayer.urlVars) {
+    this.startTime = this.parseTime(minplayer.urlVars.seek);
+  }
+
+  // Then check the options range parameter.
+  if (!this.startTime) {
+    this.startTime = this.parseTime(this.options.range.min);
+  }
+
+  // Get the stop time.
+  this.stopTime = this.options.range.max ? this.parseTime(this.options.range.max) : 0;
+
+  // Calculate the range.
+  this.mediaRange = this.stopTime - this.startTime;
+  if (this.mediaRange < 0) {
+    this.mediaRange = 0;
+  }
+
+  // Return the start time.
+  return this.startTime;
 };
 
 /**
@@ -4079,17 +4136,16 @@ minplayer.players.base.prototype.onLoaded = function() {
 
   // See if they would like to seek.
   if (!isLoaded) {
-    var seek = this.getSeek();
-    if (seek) {
-      this.getDuration((function(player) {
-        return function(duration) {
-          if (seek < duration) {
-            player.seek(seek);
+    this.getDuration((function(player) {
+      return function(duration) {
+        if (player.startTime && (player.startTime < duration)) {
+          player.seek(player.startTime);
+          if (player.options.autoplay) {
             player.play();
           }
-        };
-      })(this));
-    }
+        }
+      };
+    })(this));
   }
 };
 
@@ -4289,21 +4345,6 @@ minplayer.players.base.prototype.seek = function(pos, callback) {
 };
 
 /**
- * Gets a value from the player.
- *
- * @param {string} getter The getter method on the player.
- * @param {function} callback The callback function.
- */
-minplayer.players.base.prototype.getValue = function(getter, callback) {
-  if (this.isReady()) {
-    var value = this.player[getter]();
-    if ((value !== undefined) && (value !== null)) {
-      callback(value);
-    }
-  }
-};
-
-/**
  * Set the volume of the loaded minplayer.
  *
  * @param {number} vol -1 to 1 - The relative amount to increase or decrease.
@@ -4333,13 +4374,44 @@ minplayer.players.base.prototype.setVolume = function(vol, callback) {
 };
 
 /**
+ * Gets a value from the player.
+ *
+ * @param {string} getter The getter method on the player.
+ * @param {string} prop The property to use when getting.
+ * @param {function} callback The callback function.
+ */
+minplayer.players.base.prototype.getValue = function(method, prop, callback) {
+  this.whenReady(function() {
+    var self = this;
+    this[method](function(value) {
+      if (value !== null) {
+        callback.call(self, value);
+      }
+      else {
+        self[prop].get(callback);
+      }
+    });
+  });
+};
+
+/**
  * Get the volume from the loaded media.
  *
  * @param {function} callback Called when the volume is determined.
  * @return {number} The volume of the media; 0 to 1.
  */
 minplayer.players.base.prototype.getVolume = function(callback) {
-  return this.volume.get(callback);
+  this.getValue('_getVolume', 'volume', callback);
+};
+
+/**
+ * Implemented by the players to get the current time.
+ *
+ * @param callback
+ * @private
+ */
+minplayer.players.base.prototype._getVolume = function(callback) {
+  callback(null);
 };
 
 /**
@@ -4349,7 +4421,27 @@ minplayer.players.base.prototype.getVolume = function(callback) {
  * @return {number} The volume of the media; 0 to 1.
  */
 minplayer.players.base.prototype.getCurrentTime = function(callback) {
-  return this.currentTime.get(callback);
+  this.getValue('_getCurrentTime', 'currentTime', function(currentTime) {
+    var self = this;
+    self.setStartStop();
+    if (self.stopTime && (currentTime > self.stopTime)) {
+      self.stop(function() {
+        self.onComplete();
+      });
+    }
+    currentTime -= self.startTime;
+    callback(currentTime);
+  });
+};
+
+/**
+ * Implemented by the players to get the current time.
+ *
+ * @param callback
+ * @private
+ */
+minplayer.players.base.prototype._getCurrentTime = function(callback) {
+  callback(null);
 };
 
 /**
@@ -4363,8 +4455,22 @@ minplayer.players.base.prototype.getDuration = function(callback) {
     callback(this.options.duration);
   }
   else {
-    return this.duration.get(callback);
+    this.getValue('_getDuration', 'duration', function(duration) {
+      this.setStartStop();
+      this.realDuration = duration;
+      callback(this.mediaRange ? this.mediaRange : duration);
+    });
   }
+};
+
+/**
+ * Implemented by the players to get the duration.
+ *
+ * @param callback
+ * @private
+ */
+minplayer.players.base.prototype._getDuration = function(callback) {
+  callback(null);
 };
 
 /**
@@ -4374,7 +4480,17 @@ minplayer.players.base.prototype.getDuration = function(callback) {
  * @return {int} The bytes that were started.
  */
 minplayer.players.base.prototype.getBytesStart = function(callback) {
-  return this.bytesStart.get(callback);
+  this.getValue('_getBytesStart', 'bytesStart', callback);
+};
+
+/**
+ * Implemented by the players to get the start bytes.
+ *
+ * @param callback
+ * @private
+ */
+minplayer.players.base.prototype._getBytesStart = function(callback) {
+  callback(null);
 };
 
 /**
@@ -4384,7 +4500,19 @@ minplayer.players.base.prototype.getBytesStart = function(callback) {
  * @return {int} The amount of bytes loaded.
  */
 minplayer.players.base.prototype.getBytesLoaded = function(callback) {
-  return this.bytesLoaded.get(callback);
+  this.getValue('_getBytesLoaded', 'bytesLoaded', function(bytesLoaded) {
+    callback(bytesLoaded);
+  });
+};
+
+/**
+ * Implemented by the players to get the loaded bytes.
+ *
+ * @param callback
+ * @private
+ */
+minplayer.players.base.prototype._getBytesLoaded = function(callback) {
+  callback(null);
 };
 
 /**
@@ -4394,7 +4522,19 @@ minplayer.players.base.prototype.getBytesLoaded = function(callback) {
  * @return {int} The total amount of bytes for this media.
  */
 minplayer.players.base.prototype.getBytesTotal = function(callback) {
-  return this.bytesTotal.get(callback);
+  this.getValue('_getBytesTotal', 'bytesTotal', function(bytesTotal) {
+    callback(bytesTotal);
+  });
+};
+
+/**
+ * Implemented by the players to get the total bytes.
+ *
+ * @param callback
+ * @private
+ */
+minplayer.players.base.prototype._getBytesTotal = function(callback) {
+  callback(null);
 };
 /** The minplayer namespace. */
 var minplayer = minplayer || {};
@@ -4565,7 +4705,10 @@ minplayer.players.html5.prototype.addPlayerEvents = function() {
     this.addPlayerEvent('durationchange', function() {
       if (this.player) {
         this.duration.set(this.player.duration);
-        this.trigger('durationchange', {duration: this.player.duration});
+        var self = this;
+        this.getDuration(function(duration) {
+          self.trigger('durationchange', {duration: duration});
+        });
       }
     });
     this.addPlayerEvent('progress', function(event) {
@@ -4747,92 +4890,74 @@ minplayer.players.html5.prototype.setVolume = function(vol, callback) {
 /**
  * @see minplayer.players.base#getVolume
  */
-minplayer.players.html5.prototype.getVolume = function(callback) {
-  this.whenReady(function() {
-    callback(this.player.volume);
-  });
+minplayer.players.html5.prototype._getVolume = function(callback) {
+  callback(this.player.volume);
 };
 
 /**
- * @see minplayer.players.base#getDuration
+ * @see minplayer.players.base#_getDuration
  */
-minplayer.players.html5.prototype.getDuration = function(callback) {
-  this.whenReady(function() {
-    if (this.options.duration) {
-      callback(this.options.duration);
-    }
-    else {
-      this.duration.get(callback);
-      if (this.player.duration) {
-        this.duration.set(this.player.duration);
-      }
-    }
-  });
+minplayer.players.html5.prototype._getDuration = function(callback) {
+  callback(this.player.duration);
 };
 
 /**
  * @see minplayer.players.base#getCurrentTime
  */
-minplayer.players.html5.prototype.getCurrentTime = function(callback) {
-  this.whenReady(function() {
-    callback(this.player.currentTime);
-  });
+minplayer.players.html5.prototype._getCurrentTime = function(callback) {
+  callback(this.player.currentTime);
 };
 
 /**
- * @see minplayer.players.base#getBytesLoaded
+ * @see minplayer.players.base#_getBytesLoaded
  */
-minplayer.players.html5.prototype.getBytesLoaded = function(callback) {
-  this.whenReady(function() {
-    var loaded = 0;
+minplayer.players.html5.prototype._getBytesLoaded = function(callback) {
+  var loaded = 0;
 
-    // Check several different possibilities.
-    if (this.bytesLoaded.value) {
-      loaded = this.bytesLoaded.value;
-    }
-    else if (this.player.buffered &&
-        this.player.buffered.length > 0 &&
-        this.player.buffered.end &&
-        this.player.duration) {
-      loaded = this.player.buffered.end(0);
-    }
-    else if (this.player.bytesTotal !== undefined &&
-             this.player.bytesTotal > 0 &&
-             this.player.bufferedBytes !== undefined) {
-      loaded = this.player.bufferedBytes;
-    }
+  // Check several different possibilities.
+  if (this.bytesLoaded.value) {
+    loaded = this.bytesLoaded.value;
+  }
+  else if (this.player.buffered &&
+      this.player.buffered.length > 0 &&
+      this.player.buffered.end &&
+      this.player.duration) {
+    loaded = this.player.buffered.end(0);
+  }
+  else if (this.player.bytesTotal !== undefined &&
+           this.player.bytesTotal > 0 &&
+           this.player.bufferedBytes !== undefined) {
+    loaded = this.player.bufferedBytes;
+  }
 
-    // Return the loaded amount.
-    callback(loaded);
-  });
+  // Return the loaded amount.
+  callback(loaded);
 };
 
 /**
- * @see minplayer.players.base#getBytesTotal
+ * @see minplayer.players.base#_getBytesTotal
  */
-minplayer.players.html5.prototype.getBytesTotal = function(callback) {
-  this.whenReady(function() {
-    var total = 0;
+minplayer.players.html5.prototype._getBytesTotal = function(callback) {
+  var total = 0;
 
-    // Check several different possibilities.
-    if (this.bytesTotal.value) {
-      total = this.bytesTotal.value;
-    }
-    else if (this.player.buffered &&
-        this.player.buffered.length > 0 &&
-        this.player.buffered.end &&
-        this.player.duration) {
-      total = this.player.duration;
-    }
-    else if (this.player.bytesTotal !== undefined &&
-             this.player.bytesTotal > 0 &&
-             this.player.bufferedBytes !== undefined) {
-      total = this.player.bytesTotal;
-    }
+  // Check several different possibilities.
+  if (this.bytesTotal.value) {
+    total = this.bytesTotal.value;
+  }
+  else if (this.player.buffered &&
+      this.player.buffered.length > 0 &&
+      this.player.buffered.end &&
+      this.player.duration) {
+    total = this.player.duration;
+  }
+  else if (this.player.bytesTotal !== undefined &&
+           this.player.bytesTotal > 0 &&
+           this.player.bufferedBytes !== undefined) {
+    total = this.player.bytesTotal;
+  }
 
-    // Return the loaded amount.
-    callback(total);
-  });
+  // Return the loaded amount.
+  callback(total);
 };
 /** The minplayer namespace. */
 var minplayer = minplayer || {};
@@ -5204,68 +5329,53 @@ minplayer.players.minplayer.prototype.setVolume = function(vol, callback) {
 /**
  * @see minplayer.players.base#getVolume
  */
-minplayer.players.minplayer.prototype.getVolume = function(callback) {
-  this.whenReady(function() {
-    callback(this.player.getVolume());
-  });
+minplayer.players.minplayer.prototype._getVolume = function(callback) {
+  callback(this.player.getVolume());
 };
 
 /**
  * @see minplayer.players.flash#getDuration
  */
-minplayer.players.minplayer.prototype.getDuration = function(callback) {
-  this.whenReady(function() {
-    if (this.options.duration) {
-      callback(this.options.duration);
-    }
-    else {
-      // Check to see if it is immediately available.
-      var duration = this.player.getDuration();
-      if (duration) {
-        callback(duration);
-      }
-      else {
+minplayer.players.minplayer.prototype._getDuration = function(callback) {
+  // Check to see if it is immediately available.
+  var duration = this.player.getDuration();
+  if (duration) {
+    callback(duration);
+  }
+  else {
 
-        // If not, then poll every second for the duration.
-        this.poll('duration', (function(player) {
-          return function() {
-            duration = player.player.getDuration();
-            if (duration) {
-              callback(duration);
-            }
-            return !duration;
-          };
-        })(this), 1000);
-      }
-    }
-  });
+    // If not, then poll every second for the duration.
+    this.poll('duration', (function(player) {
+      return function() {
+        duration = player.player.getDuration();
+        if (duration) {
+          callback(duration);
+        }
+        return !duration;
+      };
+    })(this), 1000);
+  }
 };
 
 /**
  * @see minplayer.players.base#getCurrentTime
  */
-minplayer.players.minplayer.prototype.getCurrentTime = function(callback) {
-  this.whenReady(function() {
-    callback(this.player.getCurrentTime());
-  });
+minplayer.players.minplayer.prototype._getCurrentTime = function(callback) {
+  callback(this.player.getCurrentTime());
 };
 
 /**
- * @see minplayer.players.base#getBytesLoaded
+ * @see minplayer.players.base#_getBytesLoaded
  */
-minplayer.players.minplayer.prototype.getBytesLoaded = function(callback) {
-  this.whenReady(function() {
-    callback(this.player.getMediaBytesLoaded());
-  });
+minplayer.players.minplayer.prototype._getBytesLoaded = function(callback) {
+  callback(this.player.getMediaBytesLoaded());
 };
 
 /**
- * @see minplayer.players.base#getBytesTotal.
+ * @see minplayer.players.base#_getBytesTotal.
  */
-minplayer.players.minplayer.prototype.getBytesTotal = function(callback) {
-  this.whenReady(function() {
-    callback(this.player.getMediaBytesTotal());
-  });
+minplayer.players.minplayer.prototype._getBytesTotal = function(callback) {
+  callback(this.player.getMediaBytesTotal());
 };
 /** The minplayer namespace. */
 var minplayer = minplayer || {};
@@ -5658,48 +5768,43 @@ minplayer.players.youtube.prototype.setVolume = function(vol, callback) {
 /**
  * @see minplayer.players.base#getVolume
  */
-minplayer.players.youtube.prototype.getVolume = function(callback) {
-  this.getValue('getVolume', callback);
+minplayer.players.youtube.prototype._getVolume = function(callback) {
+  callback(this.player.getVolume());
 };
 
 /**
  * @see minplayer.players.base#getDuration.
  */
-minplayer.players.youtube.prototype.getDuration = function(callback) {
-  if (this.options.duration) {
-    callback(this.options.duration);
-  }
-  else {
-    this.getValue('getDuration', callback);
-  }
+minplayer.players.youtube.prototype._getDuration = function(callback) {
+  callback(this.player.getDuration());
 };
 
 /**
  * @see minplayer.players.base#getCurrentTime
  */
-minplayer.players.youtube.prototype.getCurrentTime = function(callback) {
-  this.getValue('getCurrentTime', callback);
+minplayer.players.youtube.prototype._getCurrentTime = function(callback) {
+  callback(this.player.getCurrentTime());
 };
 
 /**
  * @see minplayer.players.base#getBytesStart.
  */
-minplayer.players.youtube.prototype.getBytesStart = function(callback) {
-  this.getValue('getVideoStartBytes', callback);
+minplayer.players.youtube.prototype._getBytesStart = function(callback) {
+  callback(this.player.getVideoStartBytes());
 };
 
 /**
  * @see minplayer.players.base#getBytesLoaded.
  */
-minplayer.players.youtube.prototype.getBytesLoaded = function(callback) {
-  this.getValue('getVideoBytesLoaded', callback);
+minplayer.players.youtube.prototype._getBytesLoaded = function(callback) {
+  callback(this.player.getVideoBytesLoaded());
 };
 
 /**
  * @see minplayer.players.base#getBytesTotal.
  */
-minplayer.players.youtube.prototype.getBytesTotal = function(callback) {
-  this.getValue('getVideoBytesTotal', callback);
+minplayer.players.youtube.prototype._getBytesTotal = function(callback) {
+  callback(this.player.getVideoBytesTotal());
 };
 /** The minplayer namespace. */
 var minplayer = minplayer || {};
@@ -6083,30 +6188,18 @@ minplayer.players.vimeo.prototype.setVolume = function(vol, callback) {
 /**
  * @see minplayer.players.base#getVolume
  */
-minplayer.players.vimeo.prototype.getVolume = function(callback) {
-  this.whenReady(function() {
-    this.player.api('getVolume', function(vol) {
-      callback(vol);
-    });
+minplayer.players.vimeo.prototype._getVolume = function(callback) {
+  this.player.api('getVolume', function(vol) {
+    callback(vol);
   });
 };
 
 /**
  * @see minplayer.players.base#getDuration.
  */
-minplayer.players.vimeo.prototype.getDuration = function(callback) {
-  this.whenReady(function() {
-    if (this.options.duration) {
-      callback(this.options.duration);
-    }
-    else if (this.duration.value) {
-      callback(this.duration.value);
-    }
-    else {
-      this.player.api('getDuration', function(duration) {
-        callback(duration);
-      });
-    }
+minplayer.players.vimeo.prototype._getDuration = function(callback) {
+  this.player.api('getDuration', function(duration) {
+    callback(duration);
   });
 };
 /** The minplayer namespace. */
@@ -6421,10 +6514,8 @@ minplayer.players.limelight.prototype.setVolume = function(vol, callback) {
 /**
  * @see minplayer.players.base#getVolume
  */
-minplayer.players.limelight.prototype.getVolume = function(callback) {
-  this.whenReady(function() {
-    callback(this.player.doGetVolume());
-  });
+minplayer.players.limelight.prototype._getVolume = function(callback) {
+  callback(this.player.doGetVolume());
 };
 
 /**
@@ -7247,9 +7338,9 @@ osmplayer.prototype.construct = function() {
 
   /** Get the playlist or any other playlist that connects. */
   this.get('playlist', function(playlist) {
-    this.hasPlaylist = true;
     playlist.ubind(this.uuid + ':nodeLoad', (function(player) {
       return function(event, data) {
+        player.hasPlaylist = true;
         player.loadNode(data);
       };
     })(this));
