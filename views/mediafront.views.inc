@@ -99,9 +99,10 @@ function mediafront_views_pre_render(&$view) {
         (function($) {
           $(document).ready(function() {
             $(".views-field-' . drupal_clean_css_identifier($name) . '.mediafront-views-field").each(function(index, element) {
-              $(element).trigger("mediafront-view-loaded", {index:index}).click(function(event) {
+              var eventData = {index:index, view: "' . $view->name . '", id: "' . $view->mediafront_id . '"};
+              $(element).trigger("mediafront-view-loaded", eventData).click(function(event) {
                 event.preventDefault();
-                $(this).trigger("mediafront-view-loaded", {index:index});
+                $(this).trigger("mediafront-view-loaded", eventData);
                 minplayer.get("' . $view->mediafront_id . '", "player", function(player) {
                   player.loadNode(Drupal.settings.mediafront["' . $view->mediafront_id . '"].playlist.nodes[index]);
                 });
