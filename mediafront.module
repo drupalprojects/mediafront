@@ -681,7 +681,9 @@ function mediafront_get_node($type, $entity, $fields) {
             }
             else if (!empty($options[$image_type])) {
               $file = new MediaFile($values[0]);
-              $file->path = image_style_url($options[$image_type], $file->file->uri);
+              if (empty($file->path)) {
+                $file->path = image_style_url($options[$image_type], $file->file->uri);
+              }
               $node["mediafiles"]['image'][$image_type] = $file;
             }
           }

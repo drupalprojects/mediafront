@@ -24,7 +24,7 @@ class mediafront_handler_area_player extends views_handler_area {
 
   function render($empty = FALSE) {
     return mediafront_get_player($this->options['mediafront_preset'], array(
-      'id' => mediafront_views_player_pre_render($this->view),
+      'id' => $this->view->mediafront_id ? $this->view->mediafront_id : 'mediafront_' . $view->name,
       'disablePlaylist' => true,
       'playlist' => mediafront_get_playlist_from_view($this->view)
     ));

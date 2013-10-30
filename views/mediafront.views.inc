@@ -80,27 +80,29 @@ function mediafront_form_views_ui_config_item_form_submit(&$form, &$form_state) 
 }
 
 /**
- * Links the mediafront fields to the player.
+ * Implementation of hook_views_pre_render().
+ *
+ * @param $view
  */
-function mediafront_views_player_pre_render($view) {
+function mediafront_views_pre_render(&$view) {
   static $instance = 0;
-  $instance++;
-
-  // Mediafront ID.
-  $id = 'mediafront_' . $view->name . '_' . $instance;
 
   // Determine if any field wishes to link to the media player.
-  foreach ($view->field as $name => $field) {
+  foreach ($view->field as $name => &$field) {
     $options = mediafront_views_get_options($field);
     if (!empty($options['link_to_player'])) {
+      if (empty($view->mediafront_id)) {
+        $view->mediafront_id = 'mediafront_' . $view->name . '_' . ++$instance;
+      }
+      $field->options['element_class'] .= " mediafront-views-field";
       drupal_add_js('
         (function($) {
           $(document).ready(function() {
-            $(".views-field-' . drupal_clean_css_identifier($name) . '").each(function(index, element) {
+            $(".views-field-' . drupal_clean_css_identifier($name) . '.mediafront-views-field").each(function(index, element) {
               $(element).click(function(event) {
                 event.preventDefault();
-                minplayer.get("' . $id . '", "player", function(player) {
-                  player.loadNode(Drupal.settings.mediafront["' . $id . '"].playlist.nodes[index]);
+                minplayer.get("' . $view->mediafront_id . '", "player", function(player) {
+                  player.loadNode(Drupal.settings.mediafront["' . $view->mediafront_id . '"].playlist.nodes[index]);
                 });
               });
             });
@@ -109,8 +111,6 @@ function mediafront_views_player_pre_render($view) {
       ', 'inline');
     }
   }
-
-  return $id;
 }
 
 /**
