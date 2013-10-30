@@ -99,8 +99,9 @@ function mediafront_views_pre_render(&$view) {
         (function($) {
           $(document).ready(function() {
             $(".views-field-' . drupal_clean_css_identifier($name) . '.mediafront-views-field").each(function(index, element) {
-              $(element).click(function(event) {
+              $(element).trigger("mediafront-view-loaded", {index:index}).click(function(event) {
                 event.preventDefault();
+                $(this).trigger("mediafront-view-loaded", {index:index});
                 minplayer.get("' . $view->mediafront_id . '", "player", function(player) {
                   player.loadNode(Drupal.settings.mediafront["' . $view->mediafront_id . '"].playlist.nodes[index]);
                 });
