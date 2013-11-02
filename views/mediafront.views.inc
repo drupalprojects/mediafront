@@ -95,6 +95,7 @@ function mediafront_views_pre_render(&$view) {
         $view->mediafront_id = 'mediafront_' . $view->name . '_' . ++$instance;
       }
       $field->options['element_class'] .= " mediafront-views-field";
+      $field->options['element_wrapper_class'] .= " mediafront-views-field";
       drupal_add_js('
         (function($) {
           $(document).ready(function() {
