@@ -104,8 +104,8 @@ function mediafront_views_pre_render(&$view) {
               $(element).click(function(event) {
                 event.preventDefault();
                 $(this).trigger("mediafront-view-loaded", eventData);
-                minplayer.get("' . $view->mediafront_id . '", "player", function(player) {
-                  player.loadNode(Drupal.settings.mediafront["' . $view->mediafront_id . '"].playlist.nodes[index]);
+                minplayer.get("' . $view->mediafront_id . '", "playlist", function(playlist) {
+                  playlist.loadItem(index, true);
                 });
               });
 
