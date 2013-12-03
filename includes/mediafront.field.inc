@@ -73,7 +73,7 @@ function mediafront_field_formatter_settings_summary($field, $instance, $view_mo
 /**
  * Implements hook_field_formatter_view().
  */
-function mediafront_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display, $type = 'mediafront_player') {
+function mediafront_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, &$items, $display, $type = 'mediafront_player') {
   $element = array();
   if ($display['type'] == $type) {
 
@@ -146,6 +146,11 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
       $temp = mediafront_preset_get_presets();
       $preset = array_shift($temp);
       $settings['preset'] = $preset['name'];
+    }
+
+    // If there was media found, but no items, we still want to render this player.
+    if (!empty($instance['settings']['mediafront']['always_show_player']) && $media_found && empty($items)) {
+      $items = array(0);
     }
 
     $element[] = array(

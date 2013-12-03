@@ -439,6 +439,13 @@ function mediafront_field_form($options, $id_prefix = '') {
     '#dependency' => array($id_prefix . 'field-type' => array('custom'))
   );
 
+  // Always show the player for any media attached to this entity.
+  $form['always_show_player'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Always show player for any media attached to this entity'),
+    '#default_value' => !empty($options['always_show_player']) ? $options['always_show_player'] : 0
+  );
+
   // Return the form.
   return $form;
 }
