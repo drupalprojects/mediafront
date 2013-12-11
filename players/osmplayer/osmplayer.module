@@ -79,7 +79,7 @@ function osmplayer_get_player($params) {
 
   // Iterate through each parameter and filter it for output.
   foreach ($params as $param => &$value) {
-    if (gettype($value) == 'string') {
+    if (gettype($value) == 'string' && $param != 'node') {
       $value = check_plain($value);
     }
   }
