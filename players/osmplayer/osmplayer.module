@@ -355,7 +355,6 @@ function osmplayer_library() {
         $path . '/src/osmplayer.parser.rss.js' => $options,
         $path . '/src/osmplayer.parser.asx.js' => $options,
         $path . '/src/osmplayer.parser.xspf.js' => $options,
-        $path . '/src/iscroll/src/iscroll.js' => $options,
         $path . '/src/osmplayer.playlist.js' => $options,
         $path . '/src/osmplayer.pager.js' => $options,
         $path . '/src/osmplayer.teaser.js' => $options
