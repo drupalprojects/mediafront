@@ -72,7 +72,7 @@ class mediafront_plugin_style_player extends views_plugin_style {
 
     // Now render the media player for this view.
     return mediafront_get_player($this->options['mediafront_preset'], array(
-      'id' => mediafront_views_player_pre_render($this->view),
+      'id' => mediafront_views_get_id($this->view),
       'playlist' => mediafront_get_playlist_from_view($this->view)
     ));
   }

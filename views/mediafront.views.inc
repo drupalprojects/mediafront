@@ -80,19 +80,29 @@ function mediafront_form_views_ui_config_item_form_submit(&$form, &$form_state) 
 }
 
 /**
+ * Returns a media player id that won't collide with other ids.
+ * @param $view
+ *
+ * @return string
+ */
+function mediafront_views_get_id($view) {
+  static $instance = 0;
+  return 'mediafront_' . $view->name . '_' . ++$instance;
+}
+
+/**
  * Implementation of hook_views_pre_render().
  *
  * @param $view
  */
 function mediafront_views_pre_render(&$view) {
-  static $instance = 0;
 
   // Determine if any field wishes to link to the media player.
   foreach ($view->field as $name => &$field) {
     $options = mediafront_views_get_options($field);
     if (!empty($options['link_to_player'])) {
       if (empty($view->mediafront_id)) {
-        $view->mediafront_id = 'mediafront_' . $view->name . '_' . ++$instance;
+        $view->mediafront_id = mediafront_views_get_id($view);
       }
       $field->options['element_class'] .= " mediafront-views-field";
       $field->options['element_wrapper_class'] .= " mediafront-views-field";
