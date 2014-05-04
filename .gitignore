@@ -1,4 +1,7 @@
 .DS_Store
+.idea
+players/osmplayer/player/doc
+players/osmplayer/player/minplayer/doc
 players/osmplayer/player/assets/
 players/osmplayer/player/flash/com/
 players/osmplayer/player/js/yuicompressor/

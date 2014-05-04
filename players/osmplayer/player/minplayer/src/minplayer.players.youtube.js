@@ -158,6 +158,7 @@ minplayer.players.youtube.prototype.setPlayerState = function(playerState) {
     case YT.PlayerState.BUFFERING:
       this.onWaiting();
       break;
+    case YT.PlayerState.UNSTARTED:
     case YT.PlayerState.PAUSED:
       this.onPaused();
       break;
