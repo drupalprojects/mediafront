@@ -84,8 +84,22 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
       $player_fields = $entity;
     }
     else {
-      // Get the fields.
+
+      // Set that the media was not found.
       $media_found = false;
+
+      // Get the settings from this field first...
+      if (!empty($instance['settings']['mediafront'])) {
+        $options = $instance['settings']['mediafront'];
+        $media_found |= ($options['field_type'] == 'media');
+        $player_fields[$instance['field_name']] = array(
+          'type' => $options['field_type'],
+          'field' => $instance['field_name'],
+          'options' => $options
+        );
+      }
+
+      // Get the fields.
       $entity_fields = field_info_instances($instance['entity_type'], $instance['bundle']);
 
       // See if there is a views field defined for this display.
@@ -118,12 +132,15 @@ function mediafront_field_formatter_view($entity_type, $entity, $field, $instanc
         }
 
         if ($include && !empty($options['field_type'])) {
-          $media_found |= ($options['field_type'] == 'media');
-          $player_fields[$entity_field['field_name']] = array(
-            'type' => $options['field_type'],
-            'field' => $entity_field['field_name'],
-            'options' => $options
-          );
+          $is_media = ($options['field_type'] == 'media');
+          if (!$is_media || !$media_found) {
+            $media_found |= $is_media;
+            $player_fields[$entity_field['field_name']] = array(
+              'type' => $options['field_type'],
+              'field' => $entity_field['field_name'],
+              'options' => $options
+            );
+          }
         }
       }
 
