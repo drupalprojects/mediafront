@@ -503,6 +503,7 @@ function osmplayer_get_player_params() {
     'playlistOnly' => FALSE,
     'disablePlaylist' => FALSE,
     'controllerOnly' => FALSE,
+    'showController' => TRUE,
     'volumeVertical' => TRUE,
     'plugins' => array(),
   );

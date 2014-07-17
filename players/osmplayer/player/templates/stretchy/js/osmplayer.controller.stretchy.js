@@ -26,10 +26,18 @@
 
     // Make sure we provide default options...
     this.options = jQuery.extend({
-      volumeVertical: true
+      volumeVertical: true,
+      controllerOnly: false,
+      showController: true
     }, this.options);
 
     minplayer.controller.prototype.construct.call(this);
+
+    // Don't execute if we want to hide the controller.
+    if (!this.options.showController) {
+      this.display.removeClass('with-controller');
+      return;
+    }
 
     if (!this.options.volumeVertical || this.options.controllerOnly) {
       this.display.addClass('minplayer-controls-volume-horizontal');
@@ -42,7 +50,11 @@
     }
 
     this.get('player', function(player) {
-      if (!this.options.controllerOnly) {
+      if (this.options.controllerOnly) {
+        this.display.addClass('controller-only');
+        player.display.css('overflow', 'visible');
+      }
+      else {
         this.get('media', function(media) {
           if (!media.hasController()) {
             this.showThenHide(5000, function(shown) {
@@ -55,11 +67,6 @@
           }
         });
       }
-      else {
-
-        // Make sure the player shows overflow for controller only.
-        player.display.css('overflow', 'visible');
-      }
     });
   }
 
@@ -67,6 +74,11 @@
    * Return the display for this plugin.
    */
   osmplayer.controller[template].prototype.getDisplay = function() {
+
+    // Don't execute if we want to hide the controller.
+    if (!this.options.showController) {
+      return jQuery(null);
+    }
 
     // See if we need to build out the controller.
     if (this.options.build) {
@@ -107,7 +119,6 @@
 
     // Let our template know we have a controller.
     this.context.addClass('with-controller');
-
     return jQuery('.minplayer-' + template + '-controls', this.context);
   }
 
