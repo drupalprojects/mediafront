@@ -32,10 +32,13 @@
     }, this.options);
 
     minplayer.controller.prototype.construct.call(this);
+    var self = this;
 
     // Don't execute if we want to hide the controller.
     if (!this.options.showController) {
-      this.display.removeClass('with-controller');
+      this.get('player', function(player) {
+        player.display.removeClass('with-controller');
+      });
       return;
     }
 
@@ -50,7 +53,7 @@
     }
 
     this.get('player', function(player) {
-      if (this.options.controllerOnly) {
+      if (self.options.controllerOnly) {
         this.display.addClass('controller-only');
         player.display.css('overflow', 'visible');
       }
