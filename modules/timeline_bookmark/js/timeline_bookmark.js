@@ -25,7 +25,7 @@ minplayer.timeline_bookmark = {
       player.get('timeline_indicator', function(timeline_indicator) {
         // Make some style adjustments.
         timeline_indicator.display.css({
-          width: '60px',
+          width: '80px',
           height: '33px',
           top: '-35px',
           left: '-38px'
