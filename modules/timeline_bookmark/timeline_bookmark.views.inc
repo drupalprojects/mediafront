@@ -79,6 +79,25 @@ function timeline_bookmark_views_data() {
     ),
   );
 
+  // Add fields for the mediatime.
+  $data['timeline_bookmark']['type'] = array(
+    'title' => t('Bookmark Type'),
+    'help' => t('The type of bookmark this is.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
   $data['timeline_bookmark']['uid'] = array(
     'title' => t('User uid'),
     'help' => t('The user that bookmarked this user.'),
@@ -102,8 +121,8 @@ function timeline_bookmark_views_data() {
 
   // Add fields for the mediatime.
   $data['timeline_bookmark']['timestamp'] = array(
-    'title' => t('Created'),
-    'help' => t('The time the bookmark was created.'),
+    'title' => t('Timestamp'),
+    'help' => t('The timestamp of the bookmark.'),
     'field' => array(
       'handler' => 'views_handler_field_numeric',
       'click sortable' => TRUE,

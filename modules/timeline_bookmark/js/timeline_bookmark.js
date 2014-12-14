@@ -8,12 +8,24 @@ minplayer.timeline_bookmark = {
   init: function(player) {
 
     // Get the bookmark link.
-    var bookmark_link = Drupal.settings.timeline_bookmark_link;
-    if (bookmark_link) {
+    var bookmark_link = null;
+    if (Drupal.settings.timeline_bookmark_link) {
+
+      // Bind when a node is loaded.
+      player.bind('nodeLoad', function(event, node) {
+        if (node.nid) {
+          bookmark_link = Drupal.settings.timeline_bookmark_link;
+          bookmark_link += '/node/' + node.nid;
+        }
+        else {
+          bookmark_link = null;
+        }
+      });
+
       player.get('timeline_indicator', function(timeline_indicator) {
         // Make some style adjustments.
         timeline_indicator.display.css({
-          width: '80px',
+          width: '60px',
           height: '33px',
           top: '-35px',
           left: '-38px'
@@ -86,19 +98,21 @@ minplayer.timeline_bookmark = {
         });
         timeline_bookmark.click(function(event) {
           event.preventDefault();
-          timeline_bookmark.addClass('timeline-bookmark-busy');
-          // Send a request to bookmark.
-          jQuery.ajax({
-            url: bookmark_link + '/' + mediatime,
-            dataType: 'json',
-            success: function(data) {
-              timeline_bookmark.removeClass('timeline-bookmark-busy');
-              timeline_bookmark_text.text('Bookmarked!');
-              setTimeout(function() {
-                bookmark_state = true;
-              }, 500);
-            }
-          });
+          if (bookmark_link) {
+            timeline_bookmark.addClass('timeline-bookmark-busy');
+            // Send a request to bookmark.
+            jQuery.ajax({
+              url: bookmark_link + '/' + mediatime,
+              dataType: 'json',
+              success: function(data) {
+                timeline_bookmark.removeClass('timeline-bookmark-busy');
+                timeline_bookmark_text.text('Bookmarked!');
+                setTimeout(function() {
+                  bookmark_state = true;
+                }, 500);
+              }
+            });
+          }
         });
       });
     }

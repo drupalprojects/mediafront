@@ -49,6 +49,13 @@ function timeline_bookmark_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'type' => array(
+        'description' => 'The bookmark type.',
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+        'default' => 'bookmark',
+      ),
     ),
     'primary key' => array('bid'),
     'indexes' => array(
@@ -56,4 +63,20 @@ function timeline_bookmark_schema() {
     ),
   );
   return $schema;
+}
+
+/**
+ * Implements hook_update_N
+ *
+ * Add the bookmark type to the timeline_bookmark module.
+ */
+function timeline_bookmark_update_7001() {
+  $spec = array(
+    'description' => 'The bookmark type.',
+    'type' => 'varchar',
+    'length' => '128',
+    'not null' => TRUE,
+    'default' => 'bookmark',
+  );
+  db_add_field('timeline_bookmark', 'type', $spec);
 }

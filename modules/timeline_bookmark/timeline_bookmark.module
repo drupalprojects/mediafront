@@ -25,6 +25,27 @@ function timeline_bookmark_menu() {
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
+
+  // The timeline bookmark callback.
+  $items['timeline_resume/%user/%/%/%'] = array(
+    'title' => 'Timeline Resume',
+    'page callback' => 'timeline_bookmark_resume',
+    'page arguments' => array(1, 2, 3, 4),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  // To retrieve the timeline bookmark.
+  $items['timeline_resume_get/%user/%/%'] = array(
+    'title' => 'Retrieve a timeline resume',
+    'page callback' => 'timeline_bookmark_resume_get',
+    'page arguments' => array(1, 2, 3),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 
@@ -44,6 +65,13 @@ function timeline_bookmark_osmplayer_info() {
         'css' => array(
           $path . '/css/timeline_bookmark.css' => array('group' => CSS_THEME)
         )
+      ),
+      'timeline_resume' => array(
+        'title' => 'Timeline Resume',
+        'description' => 'Allows you to resume media from where you left off.',
+        'js' => array(
+          $path . '/js/timeline_resume.js' => array('group' => JS_LIBRARY)
+        ),
       )
     )
   );
@@ -54,15 +82,14 @@ function timeline_bookmark_osmplayer_info() {
  */
 function timeline_bookmark_osmplayer_params($params) {
   global $user;
-
-  // Add the bookmark link.
-  if (!empty($user->uid) && !empty($params['variables']['#entity'])) {
-    $entity = $params['variables']['#entity'];
-    $link = '';
-    if (!empty($entity->nid)) {
-      $link = '/timeline_bookmark/' . $user->uid . '/node/' . $entity->nid;
-    }
+  if (!empty($user->uid)) {
+    $link = '/timeline_bookmark/' . $user->uid;
     drupal_add_js(array('timeline_bookmark_link' => $link), 'setting');
+    drupal_add_js(array('timeline_resume' => array(
+      'url' => '/timeline_resume/' . $user->uid,
+      'get' => '/timeline_resume_get/' . $user->uid,
+      'refresh' => 2000
+    )), 'setting');
   }
   return array();
 }
@@ -309,18 +336,24 @@ function timeline_bookmark_get($bookmark) {
   // Otherwise check the four ID criteria.
   else if (!empty($bookmark->entity_type) &&
       !empty($bookmark->entity_id) &&
-      !empty($bookmark->uid) &&
-      !empty($bookmark->mediatime)) {
+      !empty($bookmark->uid)) {
 
-    // Return the database entry.
-    return db_select('timeline_bookmark', 'tb')
-          ->fields('tb')
-          ->condition('tb.entity_type', check_plain($bookmark->entity_type))
-          ->condition('tb.entity_id', intval($bookmark->entity_id))
-          ->condition('tb.uid', intval($bookmark->uid))
-          ->condition('tb.mediatime', intval($bookmark->mediatime))
-          ->execute()
-          ->fetchObject();
+    $query = db_select('timeline_bookmark', 'tb');
+    $query->fields('tb');
+    $query->condition('tb.entity_type', check_plain($bookmark->entity_type));
+    $query->condition('tb.entity_id', intval($bookmark->entity_id));
+    $query->condition('tb.uid', intval($bookmark->uid));
+
+    if (!empty($bookmark->type)) {
+      $query->condition('tb.type', check_plain($bookmark->type));
+    }
+
+    if (!empty($bookmark->mediatime)) {
+      $query->condition('tb.mediatime', intval($bookmark->mediatime));
+    }
+
+    // Return the result.
+    return $query->execute()->fetchObject();
   }
 }
 
@@ -347,4 +380,89 @@ function timeline_bookmark_load($bid) {
     // Return null.
     return null;
   }
+}
+
+/**
+* Function to get the latest resume timeline bookmark.
+*/
+function timeline_bookmark_resume_get($account, $entity_type, $entity_id) {
+  global $user;
+  $error = '';
+
+  // Check to make sure the user is logged in or is admin.
+  if (($user->uid == $account->uid) || user_access("administer nodes")) {
+    $bookmark = new stdClass();
+    $bookmark->uid = $account->uid;
+    $bookmark->entity_type = $entity_type;
+    $bookmark->entity_id = $entity_id;
+    $bookmark->type = 'resume';
+    $bookmark = timeline_bookmark_get($bookmark);
+    if ($bookmark) {
+      drupal_add_http_header('Content-Type', 'text/javascript; charset=utf-8');
+      print drupal_json_encode($bookmark);
+      drupal_exit();
+    }
+    else {
+      $error = 'Bookmark does not exist.';
+    }
+  }
+  else {
+    $error = 'Permission Denied.';
+  }
+
+  // An error occured.
+  drupal_add_http_header('Content-Type', 'text/javascript; charset=utf-8');
+  print drupal_json_encode(array(
+    'status' => FALSE,
+    'errorMessage' => $error,
+  ));
+  drupal_exit();
+}
+
+/**
+* Function to submit a timeline resume entry.
+*/
+function timeline_bookmark_resume($account, $entity_type, $entity_id, $mediatime) {
+  global $user;
+  $error = '';
+
+  // Check to make sure the user is logged in or is admin.
+  if (($user->uid == $account->uid) || user_access("administer nodes")) {
+    $bookmark = new stdClass();
+    $bookmark->uid = $account->uid;
+    $bookmark->entity_type = $entity_type;
+    $bookmark->entity_id = $entity_id;
+    $bookmark->type = 'resume';
+    $existing = timeline_bookmark_get($bookmark);
+    if ($existing) {
+      $bookmark = $existing;
+    }
+
+    // Update the time.
+    $bookmark->timestamp = time();
+    $bookmark->mediatime = $mediatime;
+
+    // Print out the result.
+    if ($bookmark = timeline_bookmark_save($bookmark)) {
+
+      // Print out a success message and the bookmark.
+      drupal_add_http_header('Content-Type', 'text/javascript; charset=utf-8');
+      print drupal_json_encode($bookmark);
+      drupal_exit();
+    }
+    else {
+      $error = 'Unable to save bookmark.';
+    }
+  }
+  else {
+    $error = 'Permission Denied.';
+  }
+
+  // An error occured.
+  drupal_add_http_header('Content-Type', 'text/javascript; charset=utf-8');
+  print drupal_json_encode(array(
+  'status' => FALSE,
+  'errorMessage' => $error,
+  ));
+  drupal_exit();
 }

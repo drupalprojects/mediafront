@@ -79,6 +79,11 @@ function timeline_bookmark_views_default_views() {
   $handler->display->display_options['filters']['uid_current']['field'] = 'uid_current';
   $handler->display->display_options['filters']['uid_current']['relationship'] = 'uid';
   $handler->display->display_options['filters']['uid_current']['value'] = '1';
+  /* Filter criterion: Content: Bookmark Type */
+  $handler->display->display_options['filters']['type']['id'] = 'type';
+  $handler->display->display_options['filters']['type']['table'] = 'timeline_bookmark';
+  $handler->display->display_options['filters']['type']['field'] = 'type';
+  $handler->display->display_options['filters']['type']['value'] = 'bookmark';
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page');
