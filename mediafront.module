@@ -728,6 +728,11 @@ function mediafront_get_node($type, $entity, $fields) {
       $node['title'] = $entity->title;
     }
 
+    // Add the node id if it is available.
+    if ($type == 'node' && !empty($entity->nid)) {
+      $node['nid'] = $entity->nid;
+    }
+
     // If we have media, but not preview, see if the media module can help us out...
     if (!empty($node['mediafiles']['media']) && empty($node['mediafiles']['image'])) {
       if ($image = mediafront_get_media_preview($node['mediafiles']['media']['media'][0])) {
