@@ -1,0 +1,7 @@
+name = MediaFront User Settings
+description = This module allows each user to override the mediafront preset settings with their own settings.
+core = 7.x
+package = MediaFront
+php = 5.2.4
+dependencies[] = mediafront
+dependencies[] = osmplayer

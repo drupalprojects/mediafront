@@ -877,6 +877,7 @@ function mediafront_get_player() {
   }
 
   if ($params && is_array($params)) {
+    drupal_alter('mediafront_settings', $params);
     $params = mediafront_get_settings($params['player'], $params);
     $player = ($params && $params['player']) ? $params['player'] : 'osmplayer';
     $getPlayer = $player . '_get_player';

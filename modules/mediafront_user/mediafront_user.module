@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function mediafront_user_menu() {
+
+  // The user settings for the MediaFront Player.
+  $items['user/%user/mediafront_settings'] = array(
+    'title' => 'Media Player Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mediafront_user_settings', 1),
+    'access callback' => 'user_access',
+    'access arguments' => array('access content'),
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  return $items;
+}
+
+function mediafront_user_settings($form, $form_state, $account) {
+
+  // Set the user account in the form.
+  $form['account'] = array(
+    '#type' => 'value',
+    '#value' => $account->uid
+  );
+
+  // Get the current settings.
+  $settings = mediafront_get_settings('osmplayer', $account->data['mediafront']);
+  $preset = array('player' => 'osmplayer', 'settings' => $settings);
+  $settings_form = mediafront_player_settings_form($preset);
+
+  // Add auto play to the media player settings.
+  $form['autoplay'] = $settings_form['media_settings']['autoplay'];
+
+  // Add a submit handler.
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Save Settings'
+  );
+  return $form;
+}
+
+/**
+ * Submit handler to save all the user settings for the mediafront player.
+ *
+ * @param $form
+ * @param $form_state
+ */
+function mediafront_user_settings_submit($form, &$form_state) {
+
+  // Store the settings in the user object.
+  $account = user_load($form_state['values']['account']);
+  if ($account && $account->uid) {
+    user_save($account, array('data' => array('mediafront' => array(
+      'autoplay' => $form_state['values']['autoplay']
+    ))));
+    drupal_set_message('Your custom media player settings have been saved.');
+  }
+}
+
+/**
+ * Implements hook_mediafront_settings_alter().
+ *
+ * @param $settings
+ */
+function mediafront_user_mediafront_settings_alter(&$settings) {
+  global $user;
+
+  // Ater the information saved by this user.
+  if (isset($user->data['mediafront'])) {
+    $settings = array_merge($settings, $user->data['mediafront']);
+  }
+}
